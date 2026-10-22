@@ -12,6 +12,7 @@
 "accessibility.battery" = "Bateria: %@";
 "accessibility.level" = "Nível de entrada: %d por cento";
 
+"nav.back" = "Voltar";
 "menu.noDevice" = "Nenhum receptor";
 "menu.reconnect" = "Reconectar";
 "menu.diagnostics" = "Diagnóstico";
@@ -47,6 +48,7 @@
 "battery.low" = "Baixa";
 "battery.empty" = "Vazia";
 
+"more.short" = "Mais";
 "more.title" = "Mais ajustes";
 "more.audio" = "Ajustes de áudio";
 "more.lowCut" = "Corte de graves";

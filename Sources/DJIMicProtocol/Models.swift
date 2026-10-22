@@ -168,4 +168,14 @@ public struct DeviceSnapshot: Equatable, Sendable {
     public var menuBarSymbol: String {
         connection.isConnected ? "mic.fill" : "mic.slash"
     }
+
+    /// `updatedAt` is intentionally excluded: the UI only needs to redraw
+    /// when actual device state changes.
+    public static func == (lhs: DeviceSnapshot, rhs: DeviceSnapshot) -> Bool {
+        lhs.connection == rhs.connection &&
+            lhs.receiverIdentity == rhs.receiverIdentity &&
+            lhs.transmitterIdentities == rhs.transmitterIdentities &&
+            lhs.receiver == rhs.receiver &&
+            lhs.transmitters == rhs.transmitters
+    }
 }

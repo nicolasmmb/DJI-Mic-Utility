@@ -4,13 +4,18 @@ import SwiftUI
 struct TransmitterSectionView: View {
     let model: AppModel
     let transmitter: TransmitterState
+    var onMore: (() -> Void)?
 
     private var enabled: Bool {
         model.snapshot.connection.isConnected
     }
 
     var body: some View {
-        SettingsSection(title: L10n.format("tx.title", transmitter.unit)) {
+        SettingsSection(
+            title: L10n.format("tx.title", transmitter.unit),
+            action: onMore,
+            actionTitle: onMore == nil ? nil : L10n.s("more.short")
+        ) {
             SettingRow(title: L10n.s("tx.voiceTone")) {
                 Picker("", selection: voiceToneBinding) {
                     Text(L10n.s("tx.voiceTone.regular")).tag(VoiceTone.regular)

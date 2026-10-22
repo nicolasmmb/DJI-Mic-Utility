@@ -39,6 +39,7 @@ public final class MicSession: MicClient, @unchecked Sendable {
     private var hasConnected = false
     private var parser = DUMLParser()
     private var state = DeviceSnapshot()
+    private var lastPublished: DeviceSnapshot?
     private var sequence = UInt16.random(in: 0...UInt16.max)
     private var pending: [UInt16: CheckedContinuation<Void, Error>] = [:]
 
@@ -130,6 +131,7 @@ public final class MicSession: MicClient, @unchecked Sendable {
         if !transport.isOpen {
             do {
                 try transport.open()
+                parser.reset()
                 hasConnected = true
                 state.connection = .connected
                 publish()
@@ -155,6 +157,7 @@ public final class MicSession: MicClient, @unchecked Sendable {
         } catch {
             eventContinuation.yield(.log("USB read failed: \(error)"))
             transport.close()
+            parser.reset()
             hasConnected = true
             failPending(.disconnected)
             state.connection = .reconnecting
@@ -211,7 +214,11 @@ public final class MicSession: MicClient, @unchecked Sendable {
         publish()
     }
 
-    private func publish() {
+    private func publish(force: Bool = false) {
+        if !force, let lastPublished, lastPublished == state {
+            return
+        }
+        lastPublished = state
         snapshotContinuation.yield(state)
     }
 

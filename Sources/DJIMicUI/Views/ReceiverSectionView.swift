@@ -81,7 +81,7 @@ struct ReceiverSectionView: View {
 
             Text(L10n.s("rx.noiseReduction.locked"))
                 .font(.caption)
-                .foregroundStyle(.tertiary)
+                .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
     }
@@ -142,14 +142,14 @@ private struct MonitoringGainRow: View {
                     value = Double(rounded)
                     commit(rounded)
                 })
-                .frame(width: 150)
+                .frame(width: 120)
                 .accessibilityLabel(L10n.s("rx.monitoringGain"))
 
                 Text("\(Int(value.rounded())) dB")
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
-                    .frame(width: 46, alignment: .trailing)
+                    .frame(width: 38, alignment: .trailing)
             }
         }
         .disabled(!enabled)

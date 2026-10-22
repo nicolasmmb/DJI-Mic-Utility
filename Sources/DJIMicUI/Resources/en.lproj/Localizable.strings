@@ -12,6 +12,7 @@
 "accessibility.battery" = "Battery: %@";
 "accessibility.level" = "Input level: %d percent";
 
+"nav.back" = "Back";
 "menu.noDevice" = "No receiver";
 "menu.reconnect" = "Reconnect";
 "menu.diagnostics" = "Diagnostics";
@@ -47,6 +48,7 @@
 "battery.low" = "Low";
 "battery.empty" = "Empty";
 
+"more.short" = "More";
 "more.title" = "More Settings";
 "more.audio" = "Audio Settings";
 "more.lowCut" = "Low Cut";

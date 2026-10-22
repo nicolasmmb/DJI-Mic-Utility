@@ -1,6 +1,6 @@
 # Swift menu bar app
 
-Branch: `feat/swift-menu-bar-app`.
+Branch: `feat/professional-ui` (a partir de `feat/swift-menu-bar-app`).
 
 Aplicativo nativo de barra de menus para configurar o receptor DJI Mic Mini 2
 pelo USB. Não usa código de terceiros; o único código externo é o POC Python,
@@ -53,13 +53,28 @@ assinatura ad-hoc. O binário fica em `Release/DJIMic.app`.
 - Nome do app localizado em `Packaging/*.lproj/InfoPlist.strings`.
 - Teste de paridade de chaves em `Tests/DJIMicUITests`.
 
-## Acessibilidade e HIG
+## Design e HIG
 
-- Controles nativos do macOS, SF Symbols e cores semânticas.
+- Painel compacto de 380 × 540 pt, com header, conteúdo rolável e footer fixo.
+- Seções em cards arredondados, com espaçamento consistente (4/8/12/16/20/24 pt).
+- Tipografia do sistema, valores numéricos monoespaçados e labels com
+  `minimumScaleFactor` para acomodar pt-BR.
+- "More Settings" é uma página interna com transição curta, em vez de empurrar
+  o conteúdo principal para baixo.
+- O botão "More" fica no header da seção do transmissor, replicando o padrão
+  do app oficial.
+- Medidor de nível com gradiente e animação curta; bateria com troca de
+  símbolo.
+- Otimistic update: o controle responde imediatamente e o status do
+  dispositivo reconcilia em seguida.
+- O `MicSession` não publica snapshots idênticos, reduzindo re-renders e
+  stutter.
+
+## Acessibilidade
+
 - VoiceOver labels/values nos controles principais.
-- Movimento mínimo; respeito a Reduce Motion.
-- Tema claro/escuro automático.
-- Layout em grid de 4/8/12/16/20 pt.
+- Reduce Motion desliga a transição de página e a animação do medidor.
+- Tema claro/escuro automático e materiais do sistema.
 
 ## Pendências de validação visual
 

@@ -11,7 +11,7 @@ import Testing
             TransmitterSectionView(model: model, transmitter: transmitter)
         }
         Divider()
-        MoreSettingsView(model: model, isExpanded: .constant(true))
+        MoreSettingsContent(model: model)
     }
     .padding(16)
     .frame(width: 380, alignment: .leading)
@@ -58,7 +58,7 @@ import Testing
     let view = MenuBarPanel(model: model)
     let hosting = NSHostingView(rootView: view)
     hosting.appearance = NSAppearance(named: .aqua)
-    hosting.frame = NSRect(x: 0, y: 0, width: 380, height: 700)
+    hosting.frame = NSRect(x: 0, y: 0, width: 380, height: 540)
 
     let window = NSWindow(
         contentRect: hosting.frame,
@@ -90,7 +90,7 @@ import Testing
 @Test @MainActor func rendersMoreSettingsSnapshot() throws {
     _ = NSApplication.shared
     let model = AppModel.preview
-    let content = MoreSettingsView(model: model, isExpanded: .constant(true))
+    let content = MoreSettingsContent(model: model)
         .padding(16)
         .frame(width: 380, alignment: .leading)
     let hosting = NSHostingView(rootView: content)
@@ -115,6 +115,67 @@ import Testing
         return
     }
     let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("djimic-more.png")
+    try png.write(to: url)
+    #expect(png.count > 10_000)
+}
+
+@Test @MainActor func rendersPortuguesePanel() throws {
+    L10n.languageOverride = "pt-BR"
+    defer { L10n.languageOverride = nil }
+
+    _ = NSApplication.shared
+    let model = AppModel.preview
+    let hosting = NSHostingView(rootView: MenuBarPanel(model: model))
+    hosting.appearance = NSAppearance(named: .aqua)
+    hosting.frame = NSRect(x: 0, y: 0, width: 380, height: 540)
+
+    let window = NSWindow(contentRect: hosting.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+    window.appearance = NSAppearance(named: .aqua)
+    window.backgroundColor = .windowBackgroundColor
+    window.contentView = hosting
+    window.layoutIfNeeded()
+    hosting.layoutSubtreeIfNeeded()
+    hosting.displayIfNeeded()
+
+    guard let rep = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) else {
+        Issue.record("could not create bitmap rep")
+        return
+    }
+    hosting.cacheDisplay(in: hosting.bounds, to: rep)
+    guard let png = rep.representation(using: .png, properties: [:]) else {
+        Issue.record("could not encode snapshot")
+        return
+    }
+    let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("djimic-hosting-pt.png")
+    try png.write(to: url)
+    #expect(png.count > 10_000)
+}
+
+@Test @MainActor func rendersDarkPanel() throws {
+    _ = NSApplication.shared
+    let model = AppModel.preview
+    let hosting = NSHostingView(rootView: MenuBarPanel(model: model))
+    hosting.appearance = NSAppearance(named: .darkAqua)
+    hosting.frame = NSRect(x: 0, y: 0, width: 380, height: 540)
+
+    let window = NSWindow(contentRect: hosting.frame, styleMask: [.borderless], backing: .buffered, defer: false)
+    window.appearance = NSAppearance(named: .darkAqua)
+    window.backgroundColor = .windowBackgroundColor
+    window.contentView = hosting
+    window.layoutIfNeeded()
+    hosting.layoutSubtreeIfNeeded()
+    hosting.displayIfNeeded()
+
+    guard let rep = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) else {
+        Issue.record("could not create bitmap rep")
+        return
+    }
+    hosting.cacheDisplay(in: hosting.bounds, to: rep)
+    guard let png = rep.representation(using: .png, properties: [:]) else {
+        Issue.record("could not encode snapshot")
+        return
+    }
+    let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("djimic-hosting-dark.png")
     try png.write(to: url)
     #expect(png.count > 10_000)
 }
