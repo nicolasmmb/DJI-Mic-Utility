@@ -37,7 +37,7 @@ import Testing
     let model = AppModel.preview
     let renderer = ImageRenderer(content: MenuBarPanel(model: model))
     renderer.scale = 2
-    renderer.proposedSize = ProposedViewSize(width: 380, height: 700)
+    renderer.proposedSize = ProposedViewSize(width: 400, height: 700)
 
     guard let image = renderer.nsImage,
           let tiff = image.tiffRepresentation,
@@ -58,7 +58,7 @@ import Testing
     let view = MenuBarPanel(model: model)
     let hosting = NSHostingView(rootView: view)
     hosting.appearance = NSAppearance(named: .aqua)
-    hosting.frame = NSRect(x: 0, y: 0, width: 380, height: 540)
+    hosting.frame = NSRect(x: 0, y: 0, width: 400, height: 660)
 
     let window = NSWindow(
         contentRect: hosting.frame,
@@ -95,7 +95,7 @@ import Testing
         .frame(width: 380, alignment: .leading)
     let hosting = NSHostingView(rootView: content)
     hosting.appearance = NSAppearance(named: .aqua)
-    hosting.frame = NSRect(x: 0, y: 0, width: 380, height: 520)
+    hosting.frame = NSRect(x: 0, y: 0, width: 400, height: 900)
 
     let window = NSWindow(contentRect: hosting.frame, styleMask: [.borderless], backing: .buffered, defer: false)
     window.appearance = NSAppearance(named: .aqua)
@@ -127,7 +127,7 @@ import Testing
     let model = AppModel.preview
     let hosting = NSHostingView(rootView: MenuBarPanel(model: model))
     hosting.appearance = NSAppearance(named: .aqua)
-    hosting.frame = NSRect(x: 0, y: 0, width: 380, height: 540)
+    hosting.frame = NSRect(x: 0, y: 0, width: 400, height: 660)
 
     let window = NSWindow(contentRect: hosting.frame, styleMask: [.borderless], backing: .buffered, defer: false)
     window.appearance = NSAppearance(named: .aqua)
@@ -156,7 +156,7 @@ import Testing
     let model = AppModel.preview
     let hosting = NSHostingView(rootView: MenuBarPanel(model: model))
     hosting.appearance = NSAppearance(named: .darkAqua)
-    hosting.frame = NSRect(x: 0, y: 0, width: 380, height: 540)
+    hosting.frame = NSRect(x: 0, y: 0, width: 400, height: 660)
 
     let window = NSWindow(contentRect: hosting.frame, styleMask: [.borderless], backing: .buffered, defer: false)
     window.appearance = NSAppearance(named: .darkAqua)

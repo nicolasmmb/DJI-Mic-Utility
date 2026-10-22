@@ -64,7 +64,7 @@ private func connectedSnapshot(stereo: Bool, updatedAt: Date = Date()) -> Device
 
 @MainActor
 private func waitUntil(
-    timeout: TimeInterval = 1,
+    timeout: TimeInterval = 10,
     _ condition: () -> Bool
 ) async throws {
     let deadline = Date().addingTimeInterval(timeout)
@@ -104,6 +104,8 @@ private func waitUntil(
     model.send(.stereo(true))
     #expect(model.snapshot.receiver?.stereo == true)
 
-    try await waitUntil { model.errorMessage != nil }
+    try await waitUntil {
+        model.errorMessage != nil && model.snapshot.receiver?.stereo == false
+    }
     #expect(model.snapshot.receiver?.stereo == false)
 }

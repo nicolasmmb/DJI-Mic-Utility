@@ -67,6 +67,11 @@ let package = Package(
             dependencies: ["DJIMicUI"],
             path: "tests/DJIMicUITests"
         ),
+        .testTarget(
+            name: "DJIMicAppModelTests",
+            dependencies: ["DJIMicUI", "DJIMicProtocol", "DJIMicSession"],
+            path: "tests/DJIMicAppModelTests"
+        ),
     ],
     swiftLanguageModes: [.v5]
 )
