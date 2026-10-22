@@ -7,6 +7,8 @@ import Observation
 @MainActor
 public final class AppModel {
     public private(set) var snapshot = DeviceSnapshot()
+    /// Resolved once per snapshot instead of being rebuilt by every view.
+    public private(set) var systemProfile = DeviceSystemProfile.unknown
     public private(set) var pendingSettings: Set<SettingID> = []
     public private(set) var errorMessage: String?
     /// Transmitter currently blinking its LED, if a find is running.
@@ -38,6 +40,7 @@ public final class AppModel {
     ) {
         self.session = session
         self.snapshot = initialSnapshot
+        self.systemProfile = initialSnapshot.systemProfile
         self.lastDeviceSnapshot = initialSnapshot
         start()
     }
@@ -87,6 +90,7 @@ public final class AppModel {
         guard incoming.connection.isConnected else {
             optimisticSettings.removeAll()
             self.snapshot = incoming
+            self.systemProfile = incoming.systemProfile
             return
         }
 
@@ -110,6 +114,7 @@ public final class AppModel {
         }
 
         snapshot = merged
+        systemProfile = merged.systemProfile
     }
 
     private func observeEvents() {
@@ -153,6 +158,7 @@ public final class AppModel {
             merged.applyOptimistic(entry.setting)
         }
         snapshot = merged
+        systemProfile = merged.systemProfile
     }
 
     public func isPending(_ id: SettingID) -> Bool {

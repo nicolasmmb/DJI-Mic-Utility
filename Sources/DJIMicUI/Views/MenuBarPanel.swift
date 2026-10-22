@@ -109,10 +109,10 @@ public struct MenuBarPanel: View {
             switch route {
             case .main:
                 mainPage
-                    .transition(pageTransition(forward: false))
+                    .transition(.opacity)
             case .moreSettings:
                 moreSettingsPage
-                    .transition(pageTransition(forward: true))
+                    .transition(.opacity)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -203,18 +203,9 @@ public struct MenuBarPanel: View {
             route = destination
             return
         }
-        withAnimation(.snappy(duration: 0.28)) {
+        withAnimation(.easeInOut(duration: 0.2)) {
             route = destination
         }
     }
 
-    private func pageTransition(forward: Bool) -> AnyTransition {
-        guard !reduceMotion else { return .opacity }
-
-        let edge: Edge = forward ? .trailing : .leading
-        return .asymmetric(
-            insertion: .move(edge: edge).combined(with: .opacity),
-            removal: .move(edge: edge).combined(with: .opacity)
-        )
-    }
 }

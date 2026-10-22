@@ -1,146 +1,142 @@
 import DJIMicProtocol
 import SwiftUI
 
+/// Stable projection of the settings that the secondary page renders. Live
+/// input levels and battery changes arrive at ~10 Hz and must not rebuild the
+/// glass cards.
+struct MoreSettingsState: Equatable {
+    var connected: Bool
+    var unit: Int?
+    var canEditTransmitter: Bool
+    var canEditReceiver: Bool
+    var canEditMicLED: Bool
+    var lowCut: Bool
+    var clipping: Bool
+    var ledsOff: Bool
+    var autoOff: Bool
+    var vibration: Bool
+    var float32: Bool
+    var startup: Bool
+    var recStopLock: Bool
+    var supportsLowCut: Bool
+    var supportsClipping: Bool
+    var supportsMicLED: Bool
+    var supportsAutoOff: Bool
+    var supportsVibration: Bool
+    var supportsFloat32: Bool
+    var supportsStartup: Bool
+    var supportsRecStopLock: Bool
+}
+
 /// Secondary settings page. Scope is the top-level hierarchy (transmitter /
 /// receiver); inside each card, settings are grouped by function.
 struct MoreSettingsContent: View {
     let model: AppModel
 
-    private var transmitter: TransmitterState? {
-        model.snapshot.sortedTransmitters.first
+    private var state: MoreSettingsState {
+        let transmitter = model.snapshot.sortedTransmitters.first
+        let receiver = model.snapshot.receiver
+        let system = model.systemProfile
+        let profile = transmitter.flatMap { system.transmitters[$0.unit] }
+        let connected = model.snapshot.connection.isConnected
+        let hasTransmitter = connected && transmitter != nil
+        let hasReceiver = hasTransmitter && receiver != nil
+
+        return MoreSettingsState(
+            connected: connected,
+            unit: transmitter?.unit,
+            canEditTransmitter: hasTransmitter,
+            canEditReceiver: hasReceiver,
+            canEditMicLED: hasTransmitter && model.findingUnit == nil,
+            lowCut: transmitter?.lowCut ?? false,
+            clipping: receiver?.clippingControl ?? false,
+            ledsOff: transmitter?.ledsOff ?? true,
+            autoOff: transmitter?.autoOff ?? false,
+            vibration: transmitter?.vibrationEnabled ?? false,
+            float32: transmitter?.float32Recording ?? false,
+            startup: transmitter?.startupAutoRecording ?? false,
+            recStopLock: transmitter?.recStopLock ?? false,
+            supportsLowCut: profile?.capabilities.supports(.lowCut) ?? true,
+            supportsClipping: system.receiver.capabilities.supports(.clippingControl),
+            supportsMicLED: profile?.capabilities.supports(.micLED) ?? true,
+            supportsAutoOff: profile?.capabilities.supports(.autoOffTX) ?? true,
+            supportsVibration: system.sharedTransmitterCapability(for: .vibration) != nil,
+            supportsFloat32: system.sharedTransmitterCapability(for: .float32Recording) != nil,
+            supportsStartup: system.sharedTransmitterCapability(for: .startupAutoRecording) != nil,
+            supportsRecStopLock: system.sharedTransmitterCapability(for: .recStopLock) != nil
+        )
     }
 
-    private var receiver: ReceiverState? {
-        model.snapshot.receiver
+    var body: some View {
+        MoreSettingsBody(model: model, state: state)
+            .equatable()
+    }
+}
+
+private struct MoreSettingsBody: View, Equatable {
+    let model: AppModel
+    let state: MoreSettingsState
+
+    static func == (lhs: MoreSettingsBody, rhs: MoreSettingsBody) -> Bool {
+        lhs.state == rhs.state
     }
 
-    private var transmitterProfile: DeviceProfile? {
-        guard let transmitter else { return nil }
-        return model.snapshot.systemProfile.transmitters[transmitter.unit]
-    }
-
-    private var canEditTransmitterSettings: Bool {
-        model.snapshot.connection.isConnected && transmitter != nil
-    }
-
-    private var canEditReceiverSettings: Bool {
-        canEditTransmitterSettings && receiver != nil
-    }
-
-    private var canEditMicLED: Bool {
-        canEditTransmitterSettings && model.findingUnit == nil
-    }
-
-    private var supportsLowCut: Bool {
-        transmitterProfile?.capabilities.supports(.lowCut) ?? true
-    }
-
-    private var supportsClipping: Bool {
-        model.snapshot.systemProfile.receiver.capabilities.supports(.clippingControl)
-    }
-
-    private var supportsMicLED: Bool {
-        transmitterProfile?.capabilities.supports(.micLED) ?? true
-    }
-
-    private var supportsAutoOff: Bool {
-        transmitterProfile?.capabilities.supports(.autoOffTX) ?? true
-    }
-
-    private func sharedCapability(_ key: SettingID) -> DeviceProfile? {
-        model.snapshot.systemProfile.sharedTransmitterCapability(for: key)
-    }
-
-    private var supportsVibration: Bool {
-        sharedCapability(.vibration) != nil
-    }
-
-    private var supportsFloat32: Bool {
-        sharedCapability(.float32Recording) != nil
-    }
-
-    private var supportsStartupRecording: Bool {
-        sharedCapability(.startupAutoRecording) != nil
-    }
-
-    private var supportsRecStopLock: Bool {
-        sharedCapability(.recStopLock) != nil
-    }
-
-    private var hasAudioGroup: Bool { supportsLowCut }
-    private var hasRecordingGroup: Bool { supportsFloat32 || supportsStartupRecording }
-    private var hasButtonsGroup: Bool { supportsVibration || supportsRecStopLock || supportsMicLED }
-    private var hasGeneralGroup: Bool { supportsAutoOff }
+    // MARK: - Bindings
 
     private var lowCutBinding: Binding<Bool> {
-        model.settingBinding(
-            get: { transmitter?.lowCut ?? false },
-            setting: { .lowCut($0) }
-        )
+        Binding(get: { state.lowCut }, set: { model.send(.lowCut($0)) })
     }
 
     private var clippingBinding: Binding<Bool> {
-        model.settingBinding(
-            get: { receiver?.clippingControl ?? false },
-            setting: { .clippingControl($0) }
-        )
+        Binding(get: { state.clipping }, set: { model.send(.clippingControl($0)) })
     }
 
     private var micLEDBinding: Binding<Bool> {
-        model.settingBinding(
-            get: { !(transmitter?.ledsOff ?? true) },
-            setting: { .micLED($0, unit: nil) }
-        )
+        Binding(get: { !state.ledsOff }, set: { model.send(.micLED($0, unit: nil)) })
     }
 
     private var autoOffBinding: Binding<Bool> {
-        model.settingBinding(
-            get: { transmitter?.autoOff ?? false },
-            setting: { .autoOffTX($0) }
-        )
+        Binding(get: { state.autoOff }, set: { model.send(.autoOffTX($0)) })
     }
 
     private var vibrationBinding: Binding<Bool> {
-        model.settingBinding(
-            get: { transmitter?.vibrationEnabled ?? false },
-            setting: { .vibration($0) }
-        )
+        Binding(get: { state.vibration }, set: { model.send(.vibration($0)) })
     }
 
     private var float32Binding: Binding<Bool> {
-        model.settingBinding(
-            get: { transmitter?.float32Recording ?? false },
-            setting: { .float32Recording($0) }
-        )
+        Binding(get: { state.float32 }, set: { model.send(.float32Recording($0)) })
     }
 
     private var startupRecordingBinding: Binding<Bool> {
-        model.settingBinding(
-            get: { transmitter?.startupAutoRecording ?? false },
-            setting: { .startupAutoRecording($0) }
-        )
+        Binding(get: { state.startup }, set: { model.send(.startupAutoRecording($0)) })
     }
 
     private var recStopLockBinding: Binding<Bool> {
-        model.settingBinding(
-            get: { transmitter?.recStopLock ?? false },
-            setting: { .recStopLock($0) }
-        )
+        Binding(get: { state.recStopLock }, set: { model.send(.recStopLock($0)) })
     }
+
+    // MARK: - Page
 
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
             transmitterSection
 
-            if supportsClipping {
+            if state.supportsClipping {
                 receiverSection
             }
 
-            if !canEditTransmitterSettings {
+            if !state.canEditTransmitter {
                 disconnectedHint
             }
         }
     }
+
+    private var hasAudioGroup: Bool { state.supportsLowCut }
+    private var hasRecordingGroup: Bool { state.supportsFloat32 || state.supportsStartup }
+    private var hasButtonsGroup: Bool {
+        state.supportsVibration || state.supportsRecStopLock || state.supportsMicLED
+    }
+    private var hasGeneralGroup: Bool { state.supportsAutoOff }
 
     // MARK: - Transmitter
 
@@ -182,79 +178,79 @@ struct MoreSettingsContent: View {
             systemImage: "waveform.path.ecg",
             info: L10n.s("more.lowCut.info"),
             isOn: lowCutBinding,
-            isEnabled: canEditTransmitterSettings
+            isEnabled: state.canEditTransmitter
         )
     }
 
     @ViewBuilder
     private var recordingRows: some View {
-        if supportsFloat32 {
+        if state.supportsFloat32 {
             ToggleSettingRow(
                 title: L10n.s("more.float32"),
                 subtitle: L10n.s("more.float32Note"),
                 systemImage: "waveform",
                 info: L10n.s("more.float32.info"),
                 isOn: float32Binding,
-                isEnabled: canEditTransmitterSettings
+                isEnabled: state.canEditTransmitter
             )
         }
 
-        if supportsFloat32 && supportsStartupRecording {
+        if state.supportsFloat32 && state.supportsStartup {
             Divider()
         }
 
-        if supportsStartupRecording {
+        if state.supportsStartup {
             ToggleSettingRow(
                 title: L10n.s("more.startupRecording"),
                 subtitle: L10n.s("more.startupRecordingNote"),
                 systemImage: "play.circle",
                 info: L10n.s("more.startupRecording.info"),
                 isOn: startupRecordingBinding,
-                isEnabled: canEditTransmitterSettings
+                isEnabled: state.canEditTransmitter
             )
         }
     }
 
     @ViewBuilder
     private var buttonsRows: some View {
-        if supportsVibration {
+        if state.supportsVibration {
             ToggleSettingRow(
                 title: L10n.s("more.vibration"),
                 subtitle: L10n.s("more.vibrationNote"),
                 systemImage: "iphone.radiowaves.left.and.right",
                 info: L10n.s("more.vibration.info"),
                 isOn: vibrationBinding,
-                isEnabled: canEditTransmitterSettings
+                isEnabled: state.canEditTransmitter
             )
         }
 
-        if supportsVibration && supportsRecStopLock {
+        if state.supportsVibration && state.supportsRecStopLock {
             Divider()
         }
 
-        if supportsRecStopLock {
+        if state.supportsRecStopLock {
             ToggleSettingRow(
                 title: L10n.s("more.recStopLock"),
                 subtitle: L10n.s("more.recStopLockNote"),
                 systemImage: "lock.circle",
                 info: L10n.s("more.recStopLock.info"),
                 isOn: recStopLockBinding,
-                isEnabled: canEditTransmitterSettings
+                isEnabled: state.canEditTransmitter
             )
         }
 
-        if (supportsVibration || supportsRecStopLock) && supportsMicLED {
+        if (state.supportsVibration || state.supportsRecStopLock) && state.supportsMicLED {
             Divider()
         }
 
-        if supportsMicLED {
+        if state.supportsMicLED {
             ToggleSettingRow(
                 title: L10n.s("more.micLED"),
                 subtitle: L10n.s("more.micLEDNote"),
                 systemImage: "light.max",
                 info: L10n.s("more.micLED.info"),
                 isOn: micLEDBinding,
-                isEnabled: canEditMicLED
+                isEnabled: state.canEditMicLED
             )
         }
     }
@@ -266,7 +262,7 @@ struct MoreSettingsContent: View {
             systemImage: "moon.zzz",
             info: L10n.s("more.autoOff.info"),
             isOn: autoOffBinding,
-            isEnabled: canEditTransmitterSettings
+            isEnabled: state.canEditTransmitter
         )
     }
 
@@ -285,7 +281,7 @@ struct MoreSettingsContent: View {
                 systemImage: "waveform.badge.exclamationmark",
                 info: L10n.s("more.clipping.info"),
                 isOn: clippingBinding,
-                isEnabled: canEditReceiverSettings
+                isEnabled: state.canEditReceiver
             )
         }
     }

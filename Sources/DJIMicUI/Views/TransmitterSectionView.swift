@@ -17,7 +17,7 @@ struct TransmitterSectionView: View {
     }
 
     private var profile: DeviceProfile? {
-        model.snapshot.systemProfile.transmitters[transmitter.unit]
+        model.systemProfile.transmitters[transmitter.unit]
     }
 
     private var supportsVoiceTone: Bool {
