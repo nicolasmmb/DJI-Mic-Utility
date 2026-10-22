@@ -12,18 +12,7 @@ extension View {
     ) -> some View {
         let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
         self
-            .background {
-                if #available(macOS 26.0, *) {
-                    shape
-                        .fill(.clear)
-                        .glassEffect(
-                            .regular.tint(tint).interactive(interactive),
-                            in: shape
-                        )
-                } else {
-                    shape.fill(.regularMaterial)
-                }
-            }
+            .background(.regularMaterial, in: shape)
             .background(.primary.opacity(0.06), in: shape)
             .overlay(shape.strokeBorder(.primary.opacity(0.10), lineWidth: 0.9))
             .shadow(color: .black.opacity(0.10), radius: 16, y: 8)
@@ -75,28 +64,10 @@ extension View {
     }
 }
 
-/// Groups nearby glass shapes so they can merge/morph on macOS 26+.
-struct GlassGroup<Content: View>: View {
-    var spacing: CGFloat?
-    @ViewBuilder var content: Content
-
-    var body: some View {
-        if #available(macOS 26.0, *) {
-            GlassEffectContainer(spacing: spacing) {
-                content
-            }
-        } else {
-            content
-        }
-    }
-}
-
 /// Living backdrop so the glass has something to refract. Movement is disabled
 /// with Reduce Motion.
 struct PremiumBackdrop: View {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.colorScheme) private var colorScheme
-    @State private var phase: CGFloat = 0
 
     private var base: Color {
         colorScheme == .dark
@@ -129,27 +100,21 @@ struct PremiumBackdrop: View {
             Circle()
                 .fill(greenGlow)
                 .frame(width: 230, height: 230)
-                .blur(radius: 80)
-                .offset(x: -120 + phase * 18, y: -190 + phase * 14)
+                .blur(radius: 90)
+                .offset(x: -120, y: -190)
 
             Circle()
                 .fill(blueGlow)
                 .frame(width: 270, height: 270)
-                .blur(radius: 90)
-                .offset(x: 140 - phase * 16, y: 30 + phase * 20)
+                .blur(radius: 100)
+                .offset(x: 140, y: 30)
 
             Circle()
                 .fill(warmGlow)
                 .frame(width: 200, height: 200)
-                .blur(radius: 80)
-                .offset(x: -40 + phase * 12, y: 230 - phase * 18)
+                .blur(radius: 90)
+                .offset(x: -40, y: 230)
         }
         .ignoresSafeArea()
-        .onAppear {
-            guard !reduceMotion else { return }
-            withAnimation(.easeInOut(duration: 14).repeatForever(autoreverses: true)) {
-                phase = 1
-            }
-        }
     }
 }

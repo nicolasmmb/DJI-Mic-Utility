@@ -39,31 +39,29 @@ struct DeviceHeaderView: View {
 
             Spacer(minLength: 0)
 
-            GlassGroup(spacing: 8) {
-                HStack(spacing: 8) {
-                    if let onMore {
-                        HeaderIconButton(
-                            systemImage: "slider.horizontal.3",
-                            title: L10n.s("more.title"),
-                            action: onMore
-                        )
-                    }
+            HStack(spacing: 8) {
+                if let onMore {
+                    HeaderIconButton(
+                        systemImage: "slider.horizontal.3",
+                        title: L10n.s("more.title"),
+                        action: onMore
+                    )
+                }
 
-                    if let onDiagnostics {
-                        HeaderIconButton(
-                            systemImage: "waveform.path.ecg",
-                            title: L10n.s("menu.diagnostics"),
-                            action: onDiagnostics
-                        )
-                    }
+                if let onDiagnostics {
+                    HeaderIconButton(
+                        systemImage: "waveform.path.ecg",
+                        title: L10n.s("menu.diagnostics"),
+                        action: onDiagnostics
+                    )
+                }
 
-                    if let onQuit {
-                        HeaderIconButton(
-                            systemImage: "power",
-                            title: L10n.s("menu.quit"),
-                            action: onQuit
-                        )
-                    }
+                if let onQuit {
+                    HeaderIconButton(
+                        systemImage: "power",
+                        title: L10n.s("menu.quit"),
+                        action: onQuit
+                    )
                 }
             }
         }

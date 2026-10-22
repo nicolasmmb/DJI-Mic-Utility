@@ -18,18 +18,15 @@ public struct MenuBarPanel: View {
     }
 
     public var body: some View {
-        GlassGroup(spacing: 14) {
-            VStack(spacing: 0) {
-                header
-                Divider()
-                    .opacity(0.25)
-                errorBanner
-                pageContent
-            }
-            .frame(width: PanelMetrics.width, height: PanelMetrics.height)
+        VStack(spacing: 0) {
+            header
+            Divider()
+                .opacity(0.25)
+            errorBanner
+            pageContent
         }
+        .frame(width: PanelMetrics.width, height: PanelMetrics.height)
         .background(PremiumBackdrop())
-        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .onAppear { model.start() }
         .onExitCommand {
             guard route == .moreSettings else { return }
@@ -75,20 +72,18 @@ public struct MenuBarPanel: View {
 
             Spacer(minLength: 0)
 
-            GlassGroup(spacing: 8) {
-                HStack(spacing: 8) {
-                    HeaderIconButton(
-                        systemImage: "waveform.path.ecg",
-                        title: L10n.s("menu.diagnostics"),
-                        action: openDiagnostics
-                    )
+            HStack(spacing: 8) {
+                HeaderIconButton(
+                    systemImage: "waveform.path.ecg",
+                    title: L10n.s("menu.diagnostics"),
+                    action: openDiagnostics
+                )
 
-                    HeaderIconButton(
-                        systemImage: "power",
-                        title: L10n.s("menu.quit"),
-                        action: quit
-                    )
-                }
+                HeaderIconButton(
+                    systemImage: "power",
+                    title: L10n.s("menu.quit"),
+                    action: quit
+                )
             }
         }
         .padding(.horizontal, PanelMetrics.contentInset)
