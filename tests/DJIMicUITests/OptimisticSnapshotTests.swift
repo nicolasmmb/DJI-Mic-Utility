@@ -64,3 +64,25 @@ private func makeSnapshot() -> DeviceSnapshot {
     #expect(snapshot.transmitters[1]?.voiceTone == .regular)
     #expect(snapshot.transmitters[2]?.voiceTone == .bright)
 }
+
+@Test func snapshotReflectsOnlyConfirmedValues() {
+    var snapshot = makeSnapshot()
+
+    snapshot.applyOptimistic(.stereo(true))
+    snapshot.applyOptimistic(.lowCut(true))
+
+    #expect(snapshot.reflects(.stereo(true)))
+    #expect(!snapshot.reflects(.stereo(false)))
+    #expect(snapshot.reflects(.lowCut(true)))
+    #expect(!snapshot.reflects(.lowCut(false)))
+}
+
+@Test func snapshotReflectsPerUnitMicLED() {
+    var snapshot = makeSnapshot()
+
+    snapshot.applyOptimistic(.micLED(false, unit: 2))
+
+    #expect(snapshot.reflects(.micLED(false, unit: 2)))
+    #expect(!snapshot.reflects(.micLED(false, unit: nil)))
+    #expect(snapshot.reflects(.micLED(true, unit: 1)))
+}

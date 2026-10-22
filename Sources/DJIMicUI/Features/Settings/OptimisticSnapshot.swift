@@ -37,6 +37,39 @@ extension DeviceSnapshot {
         }
     }
 
+    /// Returns `true` when a device status push already carries the value of
+    /// `setting`, so the optimistic overlay can be dropped.
+    func reflects(_ setting: MicSetting) -> Bool {
+        switch setting {
+        case .gain(let value):
+            return receiver?.gain == value
+        case .monitoringGain(let value):
+            return receiver?.monitoringGain == value
+        case .safetyTrack(let value):
+            return receiver?.safetyTrack == value
+        case .stereo(let value):
+            return receiver?.stereo == value
+        case .lowCut(let value):
+            return transmitters.values.allSatisfy { $0.lowCut == value }
+        case .micLED(let enabled, let unit):
+            let ledsOff = !enabled
+            switch unit {
+            case .some(let unit):
+                return transmitters[unit]?.ledsOff == ledsOff
+            case .none:
+                return transmitters.values.allSatisfy { $0.ledsOff == ledsOff }
+            }
+        case .voiceTone(let tone, let unit):
+            return transmitters[unit]?.voiceTone == tone
+        case .clippingControl(let value):
+            return receiver?.clippingControl == value
+        case .autoOffTX(let value):
+            return transmitters.values.allSatisfy { $0.autoOff == value }
+        case .autoOffRX(let value):
+            return receiver?.autoOff == value
+        }
+    }
+
     private mutating func updateAllTransmitters(_ update: (inout TransmitterState) -> Void) {
         for unit in Array(transmitters.keys) {
             guard var transmitter = transmitters[unit] else { continue }

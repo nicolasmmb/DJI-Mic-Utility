@@ -21,12 +21,24 @@ public final class AppModel {
     private var errorTask: Task<Void, Never>?
     private var findTask: Task<Void, Never>?
 
+    /// Settings sent but not yet reflected by a device status push. They are
+    /// overlaid on every incoming snapshot so a stale push cannot make the UI
+    /// jump back to the previous value before the device applies the change.
+    private var optimisticSettings: [SettingID: OptimisticEntry] = [:]
+    private var lastDeviceSnapshot = DeviceSnapshot()
+
+    private struct OptimisticEntry {
+        let setting: MicSetting
+        let createdAt: Date
+    }
+
     public init(
         session: any MicClient = MicSession(),
         initialSnapshot: DeviceSnapshot = DeviceSnapshot()
     ) {
         self.session = session
         self.snapshot = initialSnapshot
+        self.lastDeviceSnapshot = initialSnapshot
         start()
     }
 
@@ -61,9 +73,43 @@ public final class AppModel {
         snapshotTask = Task { [weak self] in
             guard let self else { return }
             for await snapshot in session.snapshots {
-                self.snapshot = snapshot
+                self.apply(snapshot)
             }
         }
+    }
+
+    /// Merges a device snapshot with settings still waiting to be reflected,
+    /// so optimistic values are not undone by pushes generated before the
+    /// command reached the receiver.
+    private func apply(_ incoming: DeviceSnapshot) {
+        lastDeviceSnapshot = incoming
+
+        guard incoming.connection.isConnected else {
+            optimisticSettings.removeAll()
+            self.snapshot = incoming
+            return
+        }
+
+        var merged = incoming
+        var settled: [SettingID] = []
+        let now = Date()
+
+        for (id, entry) in optimisticSettings {
+            let confirmed = incoming.reflects(entry.setting)
+            let expired = now.timeIntervalSince(entry.createdAt) > 2.5
+
+            if confirmed || expired {
+                settled.append(id)
+            } else {
+                merged.applyOptimistic(entry.setting)
+            }
+        }
+
+        for id in settled {
+            optimisticSettings[id] = nil
+        }
+
+        snapshot = merged
     }
 
     private func observeEvents() {
@@ -82,6 +128,7 @@ public final class AppModel {
         guard canSend(id) else { return }
 
         pendingSettings.insert(id)
+        optimisticSettings[id] = OptimisticEntry(setting: setting, createdAt: Date())
         snapshot.applyOptimistic(setting)
 
         Task { [weak self] in
@@ -91,9 +138,21 @@ public final class AppModel {
             do {
                 try await self.session.send(setting)
             } catch {
+                self.optimisticSettings[id] = nil
+                self.recomposeSnapshotFromLastDeviceState()
                 self.showError(SessionErrorMessage.localized(for: error))
             }
         }
+    }
+
+    /// Rebuilds the UI snapshot from the last raw device push, keeping only
+    /// the optimistic values that are still awaiting confirmation.
+    private func recomposeSnapshotFromLastDeviceState() {
+        var merged = lastDeviceSnapshot
+        for entry in optimisticSettings.values {
+            merged.applyOptimistic(entry.setting)
+        }
+        snapshot = merged
     }
 
     public func isPending(_ id: SettingID) -> Bool {
