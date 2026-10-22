@@ -17,54 +17,111 @@ public struct DiagnosticsView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            summary
+        VStack(spacing: 0) {
+            header
             Divider()
-            toolbar
-            logView
-            footer
+
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                deviceSection
+                framesToolbar
+                logView
+                footer
+            }
+            .padding(Spacing.md)
         }
-        .padding(Spacing.lg)
-        .frame(minWidth: 600, minHeight: 380)
+        .frame(minWidth: 600, minHeight: 400)
     }
 
-    private var summary: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(model.snapshot.primaryIdentity?.productName ?? L10n.s("diag.none"))
-                    .font(.title3.weight(.semibold))
+    // MARK: - Header
 
-                Spacer()
+    private var header: some View {
+        HStack(spacing: Spacing.sm) {
+            Image(systemName: "waveform.path.ecg")
+                .font(.system(size: 18, weight: .medium))
+                .foregroundStyle(.primary)
+                .frame(width: 34, height: 34)
+                .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .accessibilityHidden(true)
 
-                StatusBadge(connection: model.snapshot.connection)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(L10n.s("app.name"))
+                    .font(.headline)
+
+                Text(L10n.s("diag.title"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
 
-            Grid(alignment: .leading, horizontalSpacing: Spacing.lg, verticalSpacing: Spacing.xxs) {
-                infoRow(L10n.s("diag.firmware"), model.snapshot.receiverIdentity?.firmware)
-                infoRow(L10n.s("diag.serial"), model.snapshot.receiverIdentity?.serial)
-                infoRow(L10n.s("diag.address"), model.snapshot.receiverIdentity?.addressSuffix)
-                infoRow(L10n.s("diag.device"), transmitterSummary)
+            Spacer(minLength: 0)
+
+            StatusBadge(connection: model.snapshot.connection)
+        }
+        .padding(.horizontal, Spacing.md)
+        .padding(.vertical, Spacing.sm)
+    }
+
+    // MARK: - Device
+
+    private var deviceSection: some View {
+        SettingsSection(title: L10n.s("diag.deviceInfo"), systemImage: "cpu") {
+            Grid(alignment: .leading, horizontalSpacing: Spacing.md, verticalSpacing: 8) {
+                GridRow {
+                    infoLabel(L10n.s("diag.receiver"))
+                    infoValue(receiverName)
+                    infoLabel(L10n.s("diag.serial"))
+                    infoValue(model.snapshot.receiverIdentity?.serial, monospaced: true)
+                }
+
+                GridRow {
+                    infoLabel(L10n.s("diag.firmware"))
+                    infoValue(model.snapshot.receiverIdentity?.firmware, monospaced: true)
+                    infoLabel(L10n.s("diag.address"))
+                    infoValue(model.snapshot.receiverIdentity?.addressSuffix, monospaced: true)
+                }
+
+                GridRow {
+                    infoLabel(L10n.s("diag.device"))
+                    infoValue(transmitterSummary)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 2)
+        }
+    }
+
+    private func infoLabel(_ title: String) -> some View {
+        Text(title)
             .font(.caption)
-        }
+            .foregroundStyle(.secondary)
+            .frame(width: 84, alignment: .leading)
     }
 
-    private var toolbar: some View {
-        HStack {
+    private func infoValue(_ value: String?, monospaced: Bool = false) -> some View {
+        Text(nonEmpty(value) ?? "—")
+            .font(monospaced ? .system(.callout, design: .monospaced) : .callout)
+            .textSelection(.enabled)
+            .foregroundStyle(.primary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    // MARK: - Frames
+
+    private var framesToolbar: some View {
+        HStack(spacing: Spacing.xs) {
             Text(L10n.s("diag.frames"))
                 .font(.headline)
 
-            Spacer()
+            Spacer(minLength: 0)
 
-            Button(L10n.s("diag.reconnect")) {
+            ChipButton(title: L10n.s("diag.reconnect"), systemImage: "arrow.clockwise") {
                 model.reconnect()
             }
 
-            Button(L10n.s("diag.clear")) {
+            ChipButton(title: L10n.s("diag.clear"), systemImage: "trash") {
                 model.clearDiagnostics()
             }
 
-            Button(L10n.s("diag.export")) {
+            ChipButton(title: L10n.s("diag.export"), systemImage: "square.and.arrow.up") {
                 DiagnosticsExporter.export(model.diagnosticsJSONL())
             }
         }
@@ -78,39 +135,56 @@ public struct DiagnosticsView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(Spacing.sm)
         }
+        .frame(maxHeight: .infinity)
         .background(
-            .quaternary.opacity(0.25),
-            in: RoundedRectangle(cornerRadius: 8, style: .continuous)
+            .secondary.opacity(0.08),
+            in: RoundedRectangle(cornerRadius: 10, style: .continuous)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(.secondary.opacity(0.18), lineWidth: 1)
         )
     }
 
+    // MARK: - Footer
+
     private var footer: some View {
-        HStack {
-            Spacer()
-            Button(L10n.s("diag.close")) {
+        HStack(spacing: Spacing.sm) {
+            Text(L10n.format("diag.frameCount", model.diagnosticLines.count))
+                .font(.caption)
+                .foregroundStyle(.tertiary)
+                .monospacedDigit()
+
+            Spacer(minLength: 0)
+
+            ChipButton(
+                title: L10n.s("diag.close"),
+                systemImage: "xmark",
+                shortcut: .defaultAction
+            ) {
                 dismissWindow(id: "diagnostics")
             }
-            .keyboardShortcut(.defaultAction)
         }
+    }
+
+    // MARK: - Content
+
+    private var receiverName: String? {
+        model.snapshot.receiverIdentity?.productName
+            ?? model.snapshot.primaryIdentity?.productName
     }
 
     private var transmitterSummary: String {
-        model.snapshot.transmitterIdentities
+        let identities = model.snapshot.transmitterIdentities
             .sorted { $0.key < $1.key }
             .map { "TX\($0.key): \($0.value.productName)" }
-            .joined(separator: "  ")
-    }
 
-    @ViewBuilder
-    private func infoRow(_ title: String, _ value: String?) -> some View {
-        GridRow {
-            Text(title)
-                .foregroundStyle(.secondary)
-
-            Text(nonEmpty(value) ?? "—")
-                .textSelection(.enabled)
-                .monospacedDigit()
+        guard !identities.isEmpty else {
+            let units = model.snapshot.transmitters.keys.sorted().map { "TX\($0)" }
+            return units.joined(separator: "  ")
         }
+
+        return identities.joined(separator: "  ")
     }
 
     private func nonEmpty(_ value: String?) -> String? {

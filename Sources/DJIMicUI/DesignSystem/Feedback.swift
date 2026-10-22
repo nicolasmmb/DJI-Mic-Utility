@@ -81,3 +81,66 @@ struct HeaderIconButton: View {
         .accessibilityLabel(title)
     }
 }
+
+/// Text chip with an optional icon, used for actions in the diagnostics
+/// window. Follows the same surface, hover and press language as the panel.
+struct ChipButton: View {
+    let title: String
+    var systemImage: String?
+    var shortcut: KeyboardShortcut?
+    let action: () -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isHovering = false
+
+    private var fill: Color {
+        .secondary.opacity(isHovering ? 0.18 : 0.10)
+    }
+
+    private var stroke: Color {
+        .secondary.opacity(isHovering ? 0.32 : 0.18)
+    }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                if let systemImage {
+                    Image(systemName: systemImage)
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+
+                Text(title)
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 10)
+            .frame(height: 26)
+            .background(fill, in: Capsule())
+            .overlay(Capsule().strokeBorder(stroke, lineWidth: 1))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(PressableChipButtonStyle(reduceMotion: reduceMotion))
+        .onHover { hovering in
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) {
+                isHovering = hovering
+            }
+        }
+        .modifier(OptionalKeyboardShortcut(shortcut: shortcut))
+        .help(title)
+        .accessibilityLabel(title)
+    }
+}
+
+private struct OptionalKeyboardShortcut: ViewModifier {
+    let shortcut: KeyboardShortcut?
+
+    func body(content: Content) -> some View {
+        if let shortcut {
+            content.keyboardShortcut(shortcut)
+        } else {
+            content
+        }
+    }
+}

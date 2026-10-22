@@ -70,6 +70,9 @@
 
 "diag.title" = "Diagnóstico";
 "diag.frames" = "Frames recentes";
+"diag.frameCount" = "%d frames";
+"diag.deviceInfo" = "Dispositivo";
+"diag.receiver" = "Receptor";
 "diag.reconnect" = "Reconectar";
 "diag.clear" = "Limpar";
 "diag.export" = "Exportar…";
