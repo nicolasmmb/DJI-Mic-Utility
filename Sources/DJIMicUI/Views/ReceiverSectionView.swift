@@ -42,17 +42,8 @@ struct ReceiverSectionView: View {
         noiseReductionRow(receiver)
 
         SettingRow(title: L10n.s("rx.gain")) {
-            Picker("", selection: gainBinding) {
-                ForEach([-12, -6, 0, 6, 12], id: \.self) { value in
-                    Text(gainLabel(value)).tag(value)
-                }
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .frame(width: 210)
-            .accessibilityLabel(L10n.s("rx.gain"))
+            GainSelector(selection: gainBinding, isEnabled: isEditable)
         }
-        .disabled(!isEditable)
 
         MonitoringGainRow(
             current: receiver.monitoringGain,
@@ -85,14 +76,6 @@ struct ReceiverSectionView: View {
         Text(L10n.s("rx.unavailable"))
             .font(.subheadline)
             .foregroundStyle(.secondary)
-    }
-
-    private func gainLabel(_ value: Int) -> String {
-        switch value {
-        case 0: "0"
-        case let positive where positive > 0: "+\(positive)"
-        default: "\(value)"
-        }
     }
 
     private func noiseReductionRow(_ receiver: ReceiverState) -> some View {
