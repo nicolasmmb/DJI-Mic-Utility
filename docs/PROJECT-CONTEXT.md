@@ -129,8 +129,8 @@ Motivo: a chave O/L/H é física. O status reflete a chave.
 - `LSUIElement=1` (sem Dock icon).
 - Bundle ID `com.niko.djimic`.
 - i18n `en` e `pt-BR`.
-- Página principal com RX/TX, página “More Settings” com os grupos do app
-  oficial, footer fixo e diagnóstico.
+- Página principal com RX/TX, página “More Settings” agrupada por destino
+  (transmissor/receptor), footer fixo e diagnóstico.
 - Otimistic update nos controles e deduplicação de snapshots para reduzir
   re-renders.
 - Snapshots de UI em light/dark/pt-BR gerados por teste.
@@ -231,7 +231,7 @@ Fluxo de escrita:
 | Idiomas | `en` e `pt-BR`, com fallback em inglês |
 | Diagnóstico | janela separada, com export JSONL |
 | Bateria | barras/estado, sem porcentagem inventada |
-| More Settings | página interna replicando Audio Settings, Buttons & LED, General |
+| More Settings | página interna agrupada por destino (transmissor/receptor), aberta por um botão de ajustes no header |
 | NC | somente leitura, com explicação da chave física |
 | Clipping | controle único que afeta RX e TX |
 | Distribuição | fora da App Store, assinatura ad-hoc por enquanto |

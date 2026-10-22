@@ -3,6 +3,9 @@ import SwiftUI
 
 struct DeviceHeaderView: View {
     let model: AppModel
+    /// Opens the device-wide settings page. Kept at the panel level so the
+    /// entry point never looks like a per-transmitter action.
+    var onMore: (() -> Void)?
 
     private var primaryTransmitter: TransmitterState? {
         model.snapshot.sortedTransmitters.first
@@ -35,7 +38,22 @@ struct DeviceHeaderView: View {
 
             Spacer(minLength: 0)
 
-            BatteryView(transmitter: primaryTransmitter)
+            HStack(spacing: Spacing.xs) {
+                BatteryView(transmitter: primaryTransmitter)
+
+                if let onMore {
+                    Button(action: onMore) {
+                        Image(systemName: "slider.horizontal.3")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundStyle(.secondary)
+                            .frame(width: 26, height: 26)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.borderless)
+                    .help(L10n.s("more.title"))
+                    .accessibilityLabel(L10n.s("more.title"))
+                }
+            }
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.sm)

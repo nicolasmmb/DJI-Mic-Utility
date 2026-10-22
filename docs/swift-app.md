@@ -61,8 +61,12 @@ assinatura ad-hoc. O binário fica em `Release/DJIMic.app`.
   `minimumScaleFactor` para acomodar pt-BR.
 - "More Settings" é uma página interna com transição curta, em vez de empurrar
   o conteúdo principal para baixo.
-- O botão "More" fica no header da seção do transmissor, replicando o padrão
-  do app oficial.
+- A página de ajustes agrupa as opções por destino (transmissor ou receptor),
+  com nota de escopo em cada grupo, e abre por um botão de ajustes no header do
+  painel — não pelo card de um transmissor. Assim a página comunica que os
+  ajustes são globais (broadcast) e não a configuração do TX1.
+- Cada linha tem ícone e uma legenda curta; o cabeçalho da página mostra
+  "Aplica-se a todos os dispositivos" e não exibe a bateria de um TX.
 - Medidor de nível com gradiente e animação curta; bateria com troca de
   símbolo.
 - Otimistic update: o controle responde imediatamente e o status do

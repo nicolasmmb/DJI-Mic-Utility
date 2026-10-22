@@ -2,28 +2,42 @@ import SwiftUI
 
 struct SectionHeader: View {
     let title: String
+    var systemImage: String?
 
     var body: some View {
-        Text(title)
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(.secondary)
-            .padding(.leading, 2)
+        HStack(spacing: 5) {
+            if let systemImage {
+                Image(systemName: systemImage)
+                    .font(.system(size: 10, weight: .semibold))
+            }
+
+            Text(title)
+                .font(.subheadline.weight(.semibold))
+        }
+        .foregroundStyle(.secondary)
+        .padding(.leading, 2)
     }
 }
 
 struct SettingsSection<Content: View>: View {
     let title: String
+    var systemImage: String?
+    var footnote: String?
     var action: (() -> Void)?
     var actionTitle: String?
     @ViewBuilder var content: Content
 
     init(
         title: String,
+        systemImage: String? = nil,
+        footnote: String? = nil,
         action: (() -> Void)? = nil,
         actionTitle: String? = nil,
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
+        self.systemImage = systemImage
+        self.footnote = footnote
         self.action = action
         self.actionTitle = actionTitle
         self.content = content()
@@ -41,12 +55,20 @@ struct SettingsSection<Content: View>: View {
                 .quaternary.opacity(0.28),
                 in: RoundedRectangle(cornerRadius: PanelMetrics.cardRadius, style: .continuous)
             )
+
+            if let footnote {
+                Text(footnote)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 
     private var header: some View {
         HStack(spacing: Spacing.xs) {
-            SectionHeader(title: title)
+            SectionHeader(title: title, systemImage: systemImage)
             Spacer(minLength: 0)
 
             if let action, let actionTitle {
@@ -69,16 +91,36 @@ struct SettingsSection<Content: View>: View {
 
 struct SettingRow<Content: View>: View {
     let title: String
+    var subtitle: String?
+    var systemImage: String?
     @ViewBuilder var content: Content
 
     var body: some View {
-        HStack(alignment: .center, spacing: Spacing.sm) {
-            Text(title)
-                .font(.body)
-                .foregroundStyle(.primary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.85)
-                .frame(maxWidth: .infinity, alignment: .leading)
+        HStack(alignment: .center, spacing: Spacing.xs) {
+            if let systemImage {
+                Image(systemName: systemImage)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 20, alignment: .center)
+                    .accessibilityHidden(true)
+            }
+
+            VStack(alignment: .leading, spacing: 1) {
+                Text(title)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
+
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+
             content
         }
         .frame(minHeight: 26)
@@ -88,11 +130,13 @@ struct SettingRow<Content: View>: View {
 /// Standard switch row used by the secondary settings pages.
 struct ToggleSettingRow: View {
     let title: String
+    var subtitle: String?
+    var systemImage: String?
     let isOn: Binding<Bool>
     var isEnabled = true
 
     var body: some View {
-        SettingRow(title: title) {
+        SettingRow(title: title, subtitle: subtitle, systemImage: systemImage) {
             Toggle("", isOn: isOn)
                 .labelsHidden()
                 .toggleStyle(.switch)

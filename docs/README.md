@@ -16,7 +16,9 @@ leia nesta ordem antes de alterar qualquer coisa:
 6. [`references.md`](references.md) — repositórios e fontes consultadas; nada
    de código de terceiros foi incorporado.
 7. [`swift-app.md`](swift-app.md) — arquitetura e build do app macOS.
-8. [`feature-ideas.md`](feature-ideas.md) — backlog de evolução.
+8. [`feature-plan.md`](feature-plan.md) — plano consolidado: viabilidade,
+   implementação, dados e aprendizado de máquina, validações e roteiro.
+9. [`feature-ideas.md`](feature-ideas.md) — backlog original (histórico).
 
 ## Resumo em uma frase
 

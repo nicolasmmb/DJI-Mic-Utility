@@ -4,7 +4,6 @@ import SwiftUI
 struct TransmitterSectionView: View {
     let model: AppModel
     let transmitter: TransmitterState
-    var onMore: (() -> Void)?
 
     private var isEditable: Bool {
         model.snapshot.connection.isConnected
@@ -23,9 +22,7 @@ struct TransmitterSectionView: View {
 
     var body: some View {
         SettingsSection(
-            title: L10n.format("tx.title", transmitter.unit),
-            action: onMore,
-            actionTitle: onMore == nil ? nil : L10n.s("more.short")
+            title: L10n.format("tx.title", transmitter.unit)
         ) {
             SettingRow(title: L10n.s("tx.voiceTone")) {
                 Picker("", selection: voiceToneBinding) {

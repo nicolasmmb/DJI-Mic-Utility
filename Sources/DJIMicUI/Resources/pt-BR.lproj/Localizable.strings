@@ -51,16 +51,19 @@
 "battery.low" = "Baixa";
 "battery.empty" = "Vazia";
 
-"more.short" = "Mais";
 "more.title" = "Mais ajustes";
-"more.audio" = "Ajustes de áudio";
+"more.subtitle" = "Aplica-se a todos os dispositivos";
+"more.transmitter" = "Transmissor";
+"more.transmitterNote" = "Aplica-se a todos os transmissores conectados.";
 "more.lowCut" = "Corte de graves";
+"more.lowCutNote" = "Corta vibração e ruído de baixa frequência.";
+"more.micLED" = "LED do microfone";
+"more.micLEDNote" = "Mostra o status do transmissor no microfone.";
+"more.autoOff" = "Desligamento automático";
+"more.autoOffNote" = "Desliga o transmissor quando ocioso.";
+"more.receiver" = "Receptor";
 "more.clipping" = "Controle de clipping";
 "more.clippingNote" = "Aplica-se ao receptor e aos transmissores.";
-"more.buttons" = "Botões e LEDs";
-"more.micLED" = "LED do microfone";
-"more.general" = "Geral";
-"more.autoOff" = "Desligamento automático";
 
 "diag.title" = "Diagnóstico";
 "diag.frames" = "Frames recentes";

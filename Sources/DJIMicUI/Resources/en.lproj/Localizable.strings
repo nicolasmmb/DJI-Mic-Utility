@@ -51,16 +51,19 @@
 "battery.low" = "Low";
 "battery.empty" = "Empty";
 
-"more.short" = "More";
 "more.title" = "More Settings";
-"more.audio" = "Audio Settings";
+"more.subtitle" = "Applies to all devices";
+"more.transmitter" = "Transmitter";
+"more.transmitterNote" = "Applies to all connected transmitters.";
 "more.lowCut" = "Low Cut";
+"more.lowCutNote" = "Cuts rumble and low-frequency noise.";
+"more.micLED" = "Mic LED";
+"more.micLEDNote" = "Shows the transmitter status on the mic.";
+"more.autoOff" = "Auto Off";
+"more.autoOffNote" = "Turns the transmitter off when idle.";
+"more.receiver" = "Receiver";
 "more.clipping" = "Clipping Control";
 "more.clippingNote" = "Applies to the receiver and transmitters.";
-"more.buttons" = "Buttons & LED Indicators";
-"more.micLED" = "Mic LED";
-"more.general" = "General";
-"more.autoOff" = "Auto Off";
 
 "diag.title" = "Diagnostics";
 "diag.frames" = "Recent frames";

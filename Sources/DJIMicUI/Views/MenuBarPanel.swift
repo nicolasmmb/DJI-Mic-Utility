@@ -44,7 +44,7 @@ public struct MenuBarPanel: View {
         Group {
             switch route {
             case .main:
-                DeviceHeaderView(model: model)
+                DeviceHeaderView(model: model, onMore: { navigate(to: .moreSettings) })
             case .moreSettings:
                 moreSettingsHeader
             }
@@ -59,12 +59,16 @@ public struct MenuBarPanel: View {
             }
             .keyboardShortcut(.cancelAction)
 
-            Text(L10n.s("more.title"))
-                .font(.headline)
+            VStack(alignment: .leading, spacing: 1) {
+                Text(L10n.s("more.title"))
+                    .font(.headline)
+
+                Text(L10n.s("more.subtitle"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
 
             Spacer(minLength: 0)
-
-            BatteryView(transmitter: primaryTransmitter)
         }
         .padding(.horizontal, PanelMetrics.contentInset)
     }
@@ -128,8 +132,7 @@ public struct MenuBarPanel: View {
             ForEach(transmitters) { transmitter in
                 TransmitterSectionView(
                     model: model,
-                    transmitter: transmitter,
-                    onMore: onMoreAction(for: transmitter, in: transmitters)
+                    transmitter: transmitter
                 )
             }
         }
@@ -168,20 +171,6 @@ public struct MenuBarPanel: View {
     }
 
     // MARK: - Actions
-
-    private var primaryTransmitter: TransmitterState? {
-        model.snapshot.sortedTransmitters.first
-    }
-
-    /// Only the first transmitter exposes the shortcut to the secondary
-    /// settings page.
-    private func onMoreAction(
-        for transmitter: TransmitterState,
-        in transmitters: [TransmitterState]
-    ) -> (() -> Void)? {
-        guard transmitter.unit == transmitters.first?.unit else { return nil }
-        return { navigate(to: .moreSettings) }
-    }
 
     private func openDiagnostics() {
         openWindow(id: "diagnostics")

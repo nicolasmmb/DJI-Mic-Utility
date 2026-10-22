@@ -1,6 +1,9 @@
 import DJIMicProtocol
 import SwiftUI
 
+/// Secondary settings page. Every row here is device-wide or broadcast to all
+/// transmitters, so the layout groups rows by target device instead of by
+/// feature, and the header never shows per-unit state (such as TX1's battery).
 struct MoreSettingsContent: View {
     let model: AppModel
 
@@ -54,58 +57,80 @@ struct MoreSettingsContent: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
-            audioSection
-            buttonsSection
-            generalSection
+            transmitterSection
+            receiverSection
 
             if !canEditTransmitterSettings {
-                Text(L10n.s("tx.notConnected"))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                disconnectedHint
             }
         }
     }
 
-    private var audioSection: some View {
-        SettingsSection(title: L10n.s("more.audio")) {
+    private var transmitterSection: some View {
+        SettingsSection(
+            title: L10n.s("more.transmitter"),
+            systemImage: "mic.fill",
+            footnote: L10n.s("more.transmitterNote")
+        ) {
             ToggleSettingRow(
                 title: L10n.s("more.lowCut"),
+                subtitle: L10n.s("more.lowCutNote"),
+                systemImage: "waveform.path.ecg",
                 isOn: lowCutBinding,
                 isEnabled: canEditTransmitterSettings
             )
 
-            VStack(alignment: .leading, spacing: Spacing.xxs) {
-                ToggleSettingRow(
-                    title: L10n.s("more.clipping"),
-                    isOn: clippingBinding,
-                    isEnabled: canEditReceiverSettings
-                )
+            Divider()
 
-                Text(L10n.s("more.clippingNote"))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-        }
-    }
-
-    private var buttonsSection: some View {
-        SettingsSection(title: L10n.s("more.buttons")) {
             ToggleSettingRow(
                 title: L10n.s("more.micLED"),
+                subtitle: L10n.s("more.micLEDNote"),
+                systemImage: "light.max",
                 isOn: micLEDBinding,
                 isEnabled: canEditMicLED
             )
-        }
-    }
 
-    private var generalSection: some View {
-        SettingsSection(title: L10n.s("more.general")) {
+            Divider()
+
             ToggleSettingRow(
                 title: L10n.s("more.autoOff"),
+                subtitle: L10n.s("more.autoOffNote"),
+                systemImage: "moon.zzz",
                 isOn: autoOffBinding,
                 isEnabled: canEditTransmitterSettings
             )
         }
+    }
+
+    private var receiverSection: some View {
+        SettingsSection(
+            title: L10n.s("more.receiver"),
+            systemImage: "dot.radiowaves.left.and.right"
+        ) {
+            ToggleSettingRow(
+                title: L10n.s("more.clipping"),
+                subtitle: L10n.s("more.clippingNote"),
+                systemImage: "waveform.badge.exclamationmark",
+                isOn: clippingBinding,
+                isEnabled: canEditReceiverSettings
+            )
+        }
+    }
+
+    private var disconnectedHint: some View {
+        HStack(spacing: Spacing.xs) {
+            Image(systemName: "cable.connector.slash")
+                .font(.caption)
+                .foregroundStyle(.orange)
+
+            Text(L10n.s("tx.notConnected"))
+                .font(.caption)
+                .foregroundStyle(.secondary)
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
+        .background(.orange.opacity(0.07), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
     }
 }
