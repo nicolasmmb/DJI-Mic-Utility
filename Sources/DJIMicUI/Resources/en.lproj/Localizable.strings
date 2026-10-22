@@ -40,7 +40,6 @@
 "tx.inputLevel" = "Input Level";
 "tx.battery" = "Battery";
 "tx.find" = "Find";
-"tx.find.action" = "Blink LED";
 "tx.find.finding" = "Blinking…";
 "tx.find.hint" = "Blinks this transmitter's LED, then restores the previous state.";
 "tx.notConnected" = "Transmitter not connected.";

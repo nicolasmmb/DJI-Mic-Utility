@@ -40,7 +40,6 @@
 "tx.inputLevel" = "Nível de entrada";
 "tx.battery" = "Bateria";
 "tx.find" = "Encontrar";
-"tx.find.action" = "Piscar LED";
 "tx.find.finding" = "Piscando…";
 "tx.find.hint" = "Pisca o LED deste transmissor e restaura o estado anterior.";
 "tx.notConnected" = "Transmissor não conectado.";

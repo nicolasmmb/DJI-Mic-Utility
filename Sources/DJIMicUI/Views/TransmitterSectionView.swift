@@ -38,29 +38,35 @@ struct TransmitterSectionView: View {
                     .frame(width: 170)
             }
 
-            SettingRow(title: L10n.s("tx.battery")) {
-                BatteryView(transmitter: transmitter)
-            }
+            Divider()
+                .padding(.vertical, Spacing.xxs)
 
-            SettingRow(title: L10n.s("tx.find")) {
-                Button {
-                    model.findTransmitter(unit: transmitter.unit)
-                } label: {
-                    HStack(spacing: Spacing.xxs) {
-                        Image(systemName: isFinding ? "light.beacon.max.fill" : "light.beacon.max")
-                        Text(isFinding ? L10n.s("tx.find.finding") : L10n.s("tx.find.action"))
-                    }
-                    .font(.caption.weight(.medium))
-                    .foregroundStyle(.secondary)
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.borderless)
-                .disabled(!enabled || model.findingUnit != nil)
-                .accessibilityLabel(L10n.s("tx.find"))
-                .accessibilityValue(isFinding ? L10n.s("tx.find.finding") : L10n.s("tx.find.action"))
-                .help(L10n.s("tx.find.hint"))
+            HStack(spacing: Spacing.sm) {
+                BatteryView(transmitter: transmitter)
+                Spacer(minLength: 0)
+                findButton
             }
+            .frame(minHeight: 26)
         }
+    }
+
+    private var findButton: some View {
+        Button {
+            model.findTransmitter(unit: transmitter.unit)
+        } label: {
+            Label(
+                isFinding ? L10n.s("tx.find.finding") : L10n.s("tx.find"),
+                systemImage: isFinding ? "light.beacon.max.fill" : "light.beacon.max"
+            )
+            .font(.caption.weight(.medium))
+            .foregroundStyle(.secondary)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.borderless)
+        .disabled(!enabled || model.findingUnit != nil)
+        .accessibilityLabel(L10n.s("tx.find"))
+        .accessibilityValue(isFinding ? L10n.s("tx.find.finding") : L10n.s("tx.find"))
+        .help(L10n.s("tx.find.hint"))
     }
 
     private var voiceToneBinding: Binding<VoiceTone> {
