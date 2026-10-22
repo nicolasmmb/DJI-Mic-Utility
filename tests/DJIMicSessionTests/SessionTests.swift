@@ -1,5 +1,5 @@
 import DJIMicProtocol
-import DJIMicSession
+@testable import DJIMicSession
 import DJIMicTransport
 import Foundation
 import Testing
@@ -78,6 +78,34 @@ private func waitForConnection(_ session: MicSession) async -> Bool {
         }
     }
     return false
+}
+
+@Test func reducerPreservesInputLevelAcrossStatusPushes() {
+    var state = DeviceSnapshot(
+        connection: .connected,
+        transmitters: [1: TransmitterState(unit: 1, inputLevel: 42)]
+    )
+    let status = StatusPush(
+        receiver: nil,
+        transmitters: [1: TransmitterState(unit: 1, batteryGauge: 2)]
+    )
+
+    DeviceStateReducer().apply(.push(.status(status)), to: &state)
+
+    #expect(state.transmitters[1]?.inputLevel == 42)
+    #expect(state.transmitters[1]?.batteryGauge == 2)
+}
+
+@Test func reducerAppliesLevelPushOnlyToKnownTransmitters() {
+    var state = DeviceSnapshot(
+        connection: .connected,
+        transmitters: [1: TransmitterState(unit: 1)]
+    )
+
+    DeviceStateReducer().apply(.push(.level(LevelPush(levels: [1: 30, 9: 80]))), to: &state)
+
+    #expect(state.transmitters[1]?.inputLevel == 30)
+    #expect(state.transmitters[9] == nil)
 }
 
 @Test func acceptsCommandAcknowledgement() async throws {

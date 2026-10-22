@@ -6,12 +6,19 @@ struct TransmitterSectionView: View {
     let transmitter: TransmitterState
     var onMore: (() -> Void)?
 
-    private var enabled: Bool {
+    private var isEditable: Bool {
         model.snapshot.connection.isConnected
     }
 
     private var isFinding: Bool {
         model.findingUnit == transmitter.unit
+    }
+
+    private var voiceToneBinding: Binding<VoiceTone> {
+        model.settingBinding(
+            get: { transmitter.voiceTone },
+            setting: { .voiceTone($0, unit: transmitter.unit) }
+        )
     }
 
     var body: some View {
@@ -22,16 +29,16 @@ struct TransmitterSectionView: View {
         ) {
             SettingRow(title: L10n.s("tx.voiceTone")) {
                 Picker("", selection: voiceToneBinding) {
-                    Text(L10n.s("tx.voiceTone.regular")).tag(VoiceTone.regular)
-                    Text(L10n.s("tx.voiceTone.rich")).tag(VoiceTone.rich)
-                    Text(L10n.s("tx.voiceTone.bright")).tag(VoiceTone.bright)
+                    ForEach(VoiceTone.allCases, id: \.self) { tone in
+                        Text(voiceToneLabel(tone)).tag(tone)
+                    }
                 }
                 .pickerStyle(.segmented)
                 .labelsHidden()
                 .frame(width: 210)
                 .accessibilityLabel(L10n.s("tx.voiceTone"))
             }
-            .disabled(!enabled)
+            .disabled(!isEditable)
 
             SettingRow(title: L10n.s("tx.inputLevel")) {
                 LevelMeter(level: transmitter.inputLevel)
@@ -63,19 +70,17 @@ struct TransmitterSectionView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.borderless)
-        .disabled(!enabled || model.findingUnit != nil)
+        .disabled(!isEditable || model.findingUnit != nil)
         .accessibilityLabel(L10n.s("tx.find"))
         .accessibilityValue(isFinding ? L10n.s("tx.find.finding") : L10n.s("tx.find"))
         .help(L10n.s("tx.find.hint"))
     }
 
-    private var voiceToneBinding: Binding<VoiceTone> {
-        Binding(
-            get: { transmitter.voiceTone },
-            set: { newValue in
-                guard newValue != transmitter.voiceTone else { return }
-                model.send(.voiceTone(newValue, unit: transmitter.unit))
-            }
-        )
+    private func voiceToneLabel(_ tone: VoiceTone) -> String {
+        switch tone {
+        case .regular: L10n.s("tx.voiceTone.regular")
+        case .rich: L10n.s("tx.voiceTone.rich")
+        case .bright: L10n.s("tx.voiceTone.bright")
+        }
     }
 }

@@ -54,16 +54,14 @@ public enum MicSetting: Sendable, Equatable {
         case .lowCut(let enabled):
             return MicCommand(target: .allTransmitters, command: 0x0003, value: enabled ? 1 : 0)
         case .micLED(let enabled, let unit):
-            let target: CommandTarget
-            switch unit {
-            case .some(1): target = .transmitter1
-            case .some(2): target = .transmitter2
-            default: target = .allTransmitters
-            }
-            return MicCommand(target: target, command: 0x000A, value: enabled ? 0 : 2)
+            return MicCommand(
+                target: .transmitter(unit),
+                command: 0x000A,
+                value: enabled ? 0 : 2
+            )
         case .voiceTone(let tone, let unit):
             return MicCommand(
-                target: unit == 2 ? .transmitter2 : .transmitter1,
+                target: .transmitter(unit),
                 command: 0x0029,
                 value: tone.commandValue
             )

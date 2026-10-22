@@ -12,59 +12,53 @@ struct MoreSettingsContent: View {
         model.snapshot.receiver
     }
 
-    private var enabled: Bool {
+    private var canEditTransmitterSettings: Bool {
         model.snapshot.connection.isConnected && transmitter != nil
+    }
+
+    private var canEditReceiverSettings: Bool {
+        canEditTransmitterSettings && receiver != nil
+    }
+
+    private var canEditMicLED: Bool {
+        canEditTransmitterSettings && model.findingUnit == nil
+    }
+
+    private var lowCutBinding: Binding<Bool> {
+        model.settingBinding(
+            get: { transmitter?.lowCut ?? false },
+            setting: { .lowCut($0) }
+        )
+    }
+
+    private var clippingBinding: Binding<Bool> {
+        model.settingBinding(
+            get: { receiver?.clippingControl ?? false },
+            setting: { .clippingControl($0) }
+        )
+    }
+
+    private var micLEDBinding: Binding<Bool> {
+        model.settingBinding(
+            get: { !(transmitter?.ledsOff ?? true) },
+            setting: { .micLED($0, unit: nil) }
+        )
+    }
+
+    private var autoOffBinding: Binding<Bool> {
+        model.settingBinding(
+            get: { transmitter?.autoOff ?? false },
+            setting: { .autoOffTX($0) }
+        )
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
-            SettingsSection(title: L10n.s("more.audio")) {
-                SettingRow(title: L10n.s("more.lowCut")) {
-                    Toggle("", isOn: lowCutBinding)
-                        .labelsHidden()
-                        .toggleStyle(.switch)
-                        .accessibilityLabel(L10n.s("more.lowCut"))
-                }
-                .disabled(!enabled)
+            audioSection
+            buttonsSection
+            generalSection
 
-                VStack(alignment: .leading, spacing: Spacing.xxs) {
-                    SettingRow(title: L10n.s("more.clipping")) {
-                        Toggle("", isOn: clippingBinding)
-                            .labelsHidden()
-                            .toggleStyle(.switch)
-                            .accessibilityLabel(L10n.s("more.clipping"))
-                    }
-                    .disabled(!enabled || receiver == nil)
-
-                    Text(L10n.s("more.clippingNote"))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.leading, 0)
-                }
-            }
-
-            SettingsSection(title: L10n.s("more.buttons")) {
-                SettingRow(title: L10n.s("more.micLED")) {
-                    Toggle("", isOn: micLEDBinding)
-                        .labelsHidden()
-                        .toggleStyle(.switch)
-                        .accessibilityLabel(L10n.s("more.micLED"))
-                }
-                .disabled(!enabled || model.findingUnit != nil)
-            }
-
-            SettingsSection(title: L10n.s("more.general")) {
-                SettingRow(title: L10n.s("more.autoOff")) {
-                    Toggle("", isOn: autoOffBinding)
-                        .labelsHidden()
-                        .toggleStyle(.switch)
-                        .accessibilityLabel(L10n.s("more.autoOff"))
-                }
-                .disabled(!enabled)
-            }
-
-            if !enabled {
+            if !canEditTransmitterSettings {
                 Text(L10n.s("tx.notConnected"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -72,47 +66,46 @@ struct MoreSettingsContent: View {
         }
     }
 
-    private var lowCutBinding: Binding<Bool> {
-        Binding(
-            get: { transmitter?.lowCut ?? false },
-            set: { newValue in
-                let current = transmitter?.lowCut ?? false
-                guard newValue != current else { return }
-                model.send(.lowCut(newValue))
+    private var audioSection: some View {
+        SettingsSection(title: L10n.s("more.audio")) {
+            ToggleSettingRow(
+                title: L10n.s("more.lowCut"),
+                isOn: lowCutBinding,
+                isEnabled: canEditTransmitterSettings
+            )
+
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
+                ToggleSettingRow(
+                    title: L10n.s("more.clipping"),
+                    isOn: clippingBinding,
+                    isEnabled: canEditReceiverSettings
+                )
+
+                Text(L10n.s("more.clippingNote"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
-        )
+        }
     }
 
-    private var clippingBinding: Binding<Bool> {
-        Binding(
-            get: { receiver?.clippingControl ?? false },
-            set: { newValue in
-                let current = receiver?.clippingControl ?? false
-                guard newValue != current else { return }
-                model.send(.clippingControl(newValue))
-            }
-        )
+    private var buttonsSection: some View {
+        SettingsSection(title: L10n.s("more.buttons")) {
+            ToggleSettingRow(
+                title: L10n.s("more.micLED"),
+                isOn: micLEDBinding,
+                isEnabled: canEditMicLED
+            )
+        }
     }
 
-    private var micLEDBinding: Binding<Bool> {
-        Binding(
-            get: { !(transmitter?.ledsOff ?? true) },
-            set: { newValue in
-                let current = !(transmitter?.ledsOff ?? true)
-                guard newValue != current else { return }
-                model.send(.micLED(newValue, unit: nil))
-            }
-        )
-    }
-
-    private var autoOffBinding: Binding<Bool> {
-        Binding(
-            get: { transmitter?.autoOff ?? false },
-            set: { newValue in
-                let current = transmitter?.autoOff ?? false
-                guard newValue != current else { return }
-                model.send(.autoOffTX(newValue))
-            }
-        )
+    private var generalSection: some View {
+        SettingsSection(title: L10n.s("more.general")) {
+            ToggleSettingRow(
+                title: L10n.s("more.autoOff"),
+                isOn: autoOffBinding,
+                isEnabled: canEditTransmitterSettings
+            )
+        }
     }
 }

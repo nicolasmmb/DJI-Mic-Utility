@@ -8,59 +8,90 @@ struct ReceiverSectionView: View {
         model.snapshot.receiver
     }
 
-    private var enabled: Bool {
+    private var isEditable: Bool {
         model.snapshot.connection.isConnected && receiver != nil
+    }
+
+    private var gainBinding: Binding<Int> {
+        model.settingBinding(get: { receiver?.gain ?? 0 }, setting: { .gain($0) })
+    }
+
+    private var stereoBinding: Binding<Bool> {
+        model.settingBinding(get: { receiver?.stereo ?? false }, setting: { .stereo($0) })
+    }
+
+    private var safetyTrackBinding: Binding<Bool> {
+        model.settingBinding(
+            get: { receiver?.safetyTrack ?? false },
+            setting: { .safetyTrack($0) }
+        )
     }
 
     var body: some View {
         SettingsSection(title: L10n.s("rx.title")) {
             if let receiver {
-                noiseReductionRow(receiver)
-
-                SettingRow(title: L10n.s("rx.gain")) {
-                    Picker("", selection: gainBinding(receiver)) {
-                        ForEach([-12, -6, 0, 6, 12], id: \.self) { value in
-                            Text(value == 0 ? "0" : (value > 0 ? "+\(value)" : "\(value)"))
-                                .tag(value)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .frame(width: 210)
-                    .accessibilityLabel(L10n.s("rx.gain"))
-                }
-                .disabled(!enabled)
-
-                MonitoringGainRow(
-                    current: receiver.monitoringGain,
-                    enabled: enabled,
-                    commit: { model.send(.monitoringGain($0)) }
-                )
-
-                SettingRow(title: L10n.s("rx.audioChannel")) {
-                    Picker("", selection: stereoBinding(receiver)) {
-                        Text(L10n.s("rx.audioChannel.mono")).tag(false)
-                        Text(L10n.s("rx.audioChannel.stereo")).tag(true)
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-                    .frame(width: 150)
-                    .accessibilityLabel(L10n.s("rx.audioChannel"))
-                }
-                .disabled(!enabled)
-
-                SettingRow(title: L10n.s("rx.safetyTrack")) {
-                    Toggle("", isOn: safetyBinding(receiver))
-                        .labelsHidden()
-                        .toggleStyle(.switch)
-                        .accessibilityLabel(L10n.s("rx.safetyTrack"))
-                }
-                .disabled(!enabled)
+                receiverSettings(receiver)
             } else {
-                Text(L10n.s("rx.unavailable"))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                unavailableMessage
             }
+        }
+    }
+
+    @ViewBuilder
+    private func receiverSettings(_ receiver: ReceiverState) -> some View {
+        noiseReductionRow(receiver)
+
+        SettingRow(title: L10n.s("rx.gain")) {
+            Picker("", selection: gainBinding) {
+                ForEach([-12, -6, 0, 6, 12], id: \.self) { value in
+                    Text(gainLabel(value)).tag(value)
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .frame(width: 210)
+            .accessibilityLabel(L10n.s("rx.gain"))
+        }
+        .disabled(!isEditable)
+
+        MonitoringGainRow(
+            current: receiver.monitoringGain,
+            isEnabled: isEditable,
+            commit: { model.send(.monitoringGain($0)) }
+        )
+
+        SettingRow(title: L10n.s("rx.audioChannel")) {
+            Picker("", selection: stereoBinding) {
+                Text(L10n.s("rx.audioChannel.mono")).tag(false)
+                Text(L10n.s("rx.audioChannel.stereo")).tag(true)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .frame(width: 150)
+            .accessibilityLabel(L10n.s("rx.audioChannel"))
+        }
+        .disabled(!isEditable)
+
+        SettingRow(title: L10n.s("rx.safetyTrack")) {
+            Toggle("", isOn: safetyTrackBinding)
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .accessibilityLabel(L10n.s("rx.safetyTrack"))
+        }
+        .disabled(!isEditable)
+    }
+
+    private var unavailableMessage: some View {
+        Text(L10n.s("rx.unavailable"))
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
+    }
+
+    private func gainLabel(_ value: Int) -> String {
+        switch value {
+        case 0: "0"
+        case let positive where positive > 0: "+\(positive)"
+        default: "\(value)"
         }
     }
 
@@ -87,48 +118,17 @@ struct ReceiverSectionView: View {
     }
 
     private func noiseReductionLabel(_ receiver: ReceiverState) -> String {
-        guard receiver.noiseCancelEnabled else {
-            return L10n.s("rx.noiseReduction.off")
+        switch (receiver.noiseCancelEnabled, receiver.noiseCancelStrong) {
+        case (false, _): L10n.s("rx.noiseReduction.off")
+        case (true, true): L10n.s("rx.noiseReduction.strong")
+        case (true, false): L10n.s("rx.noiseReduction.basic")
         }
-        return receiver.noiseCancelStrong
-            ? L10n.s("rx.noiseReduction.strong")
-            : L10n.s("rx.noiseReduction.basic")
-    }
-
-    private func gainBinding(_ receiver: ReceiverState) -> Binding<Int> {
-        Binding(
-            get: { receiver.gain },
-            set: { newValue in
-                guard newValue != receiver.gain else { return }
-                model.send(.gain(newValue))
-            }
-        )
-    }
-
-    private func stereoBinding(_ receiver: ReceiverState) -> Binding<Bool> {
-        Binding(
-            get: { receiver.stereo },
-            set: { newValue in
-                guard newValue != receiver.stereo else { return }
-                model.send(.stereo(newValue))
-            }
-        )
-    }
-
-    private func safetyBinding(_ receiver: ReceiverState) -> Binding<Bool> {
-        Binding(
-            get: { receiver.safetyTrack },
-            set: { newValue in
-                guard newValue != receiver.safetyTrack else { return }
-                model.send(.safetyTrack(newValue))
-            }
-        )
     }
 }
 
 private struct MonitoringGainRow: View {
     let current: Int
-    let enabled: Bool
+    let isEnabled: Bool
     let commit: (Int) -> Void
 
     @State private var value: Double = 0
@@ -136,14 +136,9 @@ private struct MonitoringGainRow: View {
     var body: some View {
         SettingRow(title: L10n.s("rx.monitoringGain")) {
             HStack(spacing: Spacing.xs) {
-                Slider(value: $value, in: -12...12, onEditingChanged: { editing in
-                    guard !editing else { return }
-                    let rounded = Int(value.rounded())
-                    value = Double(rounded)
-                    commit(rounded)
-                })
-                .frame(width: 120)
-                .accessibilityLabel(L10n.s("rx.monitoringGain"))
+                Slider(value: $value, in: -12...12, onEditingChanged: commitWhenEditingEnds)
+                    .frame(width: 120)
+                    .accessibilityLabel(L10n.s("rx.monitoringGain"))
 
                 Text("\(Int(value.rounded())) dB")
                     .font(.caption)
@@ -152,10 +147,17 @@ private struct MonitoringGainRow: View {
                     .frame(width: 38, alignment: .trailing)
             }
         }
-        .disabled(!enabled)
+        .disabled(!isEnabled)
         .onAppear { value = Double(current) }
         .onChange(of: current) { _, newValue in
             value = Double(newValue)
         }
+    }
+
+    private func commitWhenEditingEnds(_ isEditing: Bool) {
+        guard !isEditing else { return }
+        let rounded = Int(value.rounded())
+        value = Double(rounded)
+        commit(rounded)
     }
 }
