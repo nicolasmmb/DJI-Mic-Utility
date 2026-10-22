@@ -36,6 +36,19 @@ mostra os pushes conforme chegam.
 
 Ver [`tools/poc/README.md`](tools/poc/README.md).
 
+## App Swift (menu bar)
+
+O app nativo está em `Sources/` e é documentado em
+[`docs/swift-app.md`](docs/swift-app.md). Build:
+
+```bash
+swift test
+./Scripts/build-app.sh
+open Release/DJIMic.app
+```
+
+O POC Python continua intacto em `tools/poc/`.
+
 ## Próximos passos
 
 1. Esclarecer os frames periódicos `5b 04` e validar o bit de carregamento.

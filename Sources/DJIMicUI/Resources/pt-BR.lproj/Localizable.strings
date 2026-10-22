@@ -1,0 +1,77 @@
+"app.name" = "Controle do Mic";
+"app.subtitle" = "Microfone wireless DJI";
+
+"status.connected" = "Conectado";
+"status.connecting" = "Conectando";
+"status.reconnecting" = "Reconectando";
+"status.disconnected" = "Desconectado";
+"status.failed" = "Erro de conexão";
+"status.disconnectedHint" = "Conecte o receptor USB-C.";
+
+"accessibility.connection" = "Conexão: %@";
+"accessibility.battery" = "Bateria: %@";
+"accessibility.level" = "Nível de entrada: %d por cento";
+
+"menu.noDevice" = "Nenhum receptor";
+"menu.reconnect" = "Reconectar";
+"menu.diagnostics" = "Diagnóstico";
+"menu.quit" = "Sair";
+
+"rx.title" = "Receptor";
+"rx.unavailable" = "Aguardando dados do receptor…";
+"rx.noiseReduction" = "Redução de ruído";
+"rx.noiseReduction.off" = "Desligada";
+"rx.noiseReduction.basic" = "Básica";
+"rx.noiseReduction.strong" = "Forte";
+"rx.noiseReduction.locked" = "Controlada pela chave O/L/H do receptor.";
+"rx.gain" = "Ganho";
+"rx.monitoringGain" = "Ganho de monitoramento";
+"rx.audioChannel" = "Canal de áudio";
+"rx.audioChannel.mono" = "Mono";
+"rx.audioChannel.stereo" = "Estéreo";
+"rx.safetyTrack" = "Faixa de segurança";
+
+"tx.title" = "Transmissor %d";
+"tx.voiceTone" = "Timbre da voz";
+"tx.voiceTone.regular" = "Regular";
+"tx.voiceTone.rich" = "Encorpado";
+"tx.voiceTone.bright" = "Brilhante";
+"tx.inputLevel" = "Nível de entrada";
+"tx.battery" = "Bateria";
+"tx.notConnected" = "Transmissor não conectado.";
+
+"battery.unknown" = "Desconhecida";
+"battery.full" = "Cheia";
+"battery.good" = "Boa";
+"battery.medium" = "Média";
+"battery.low" = "Baixa";
+"battery.empty" = "Vazia";
+
+"more.title" = "Mais ajustes";
+"more.audio" = "Ajustes de áudio";
+"more.lowCut" = "Corte de graves";
+"more.clipping" = "Controle de clipping";
+"more.clippingNote" = "Aplica-se ao receptor e aos transmissores.";
+"more.buttons" = "Botões e LEDs";
+"more.micLED" = "LED do microfone";
+"more.general" = "Geral";
+"more.autoOff" = "Desligamento automático";
+
+"diag.title" = "Diagnóstico";
+"diag.frames" = "Frames recentes";
+"diag.reconnect" = "Reconectar";
+"diag.clear" = "Limpar";
+"diag.export" = "Exportar…";
+"diag.close" = "Fechar";
+"diag.none" = "Nenhum receptor detectado.";
+"diag.firmware" = "Firmware";
+"diag.serial" = "Serial";
+"diag.address" = "Sufixo de endereço";
+"diag.device" = "Transmissores";
+"diag.empty" = "Nenhum frame recebido ainda.";
+
+"error.rejected" = "O receptor rejeitou o comando.";
+"error.timeout" = "O receptor não respondeu.";
+"error.disconnected" = "O receptor está desconectado.";
+"error.transport" = "Erro USB: %@";
+"error.unknown" = "%@";

@@ -1,0 +1,77 @@
+"app.name" = "Mic Control";
+"app.subtitle" = "DJI wireless microphone";
+
+"status.connected" = "Connected";
+"status.connecting" = "Connecting";
+"status.reconnecting" = "Reconnecting";
+"status.disconnected" = "Disconnected";
+"status.failed" = "Connection error";
+"status.disconnectedHint" = "Connect the USB-C receiver.";
+
+"accessibility.connection" = "Connection: %@";
+"accessibility.battery" = "Battery: %@";
+"accessibility.level" = "Input level: %d percent";
+
+"menu.noDevice" = "No receiver";
+"menu.reconnect" = "Reconnect";
+"menu.diagnostics" = "Diagnostics";
+"menu.quit" = "Quit";
+
+"rx.title" = "Receiver";
+"rx.unavailable" = "Waiting for receiver data…";
+"rx.noiseReduction" = "Noise Reduction";
+"rx.noiseReduction.off" = "Off";
+"rx.noiseReduction.basic" = "Basic";
+"rx.noiseReduction.strong" = "Strong";
+"rx.noiseReduction.locked" = "Controlled by the O/L/H switch on the receiver.";
+"rx.gain" = "Gain";
+"rx.monitoringGain" = "Monitoring Gain";
+"rx.audioChannel" = "Audio Channel";
+"rx.audioChannel.mono" = "Mono";
+"rx.audioChannel.stereo" = "Stereo";
+"rx.safetyTrack" = "Safety Track";
+
+"tx.title" = "Transmitter %d";
+"tx.voiceTone" = "Voice Tone";
+"tx.voiceTone.regular" = "Regular";
+"tx.voiceTone.rich" = "Rich";
+"tx.voiceTone.bright" = "Bright";
+"tx.inputLevel" = "Input Level";
+"tx.battery" = "Battery";
+"tx.notConnected" = "Transmitter not connected.";
+
+"battery.unknown" = "Unknown";
+"battery.full" = "Full";
+"battery.good" = "Good";
+"battery.medium" = "Medium";
+"battery.low" = "Low";
+"battery.empty" = "Empty";
+
+"more.title" = "More Settings";
+"more.audio" = "Audio Settings";
+"more.lowCut" = "Low Cut";
+"more.clipping" = "Clipping Control";
+"more.clippingNote" = "Applies to the receiver and transmitters.";
+"more.buttons" = "Buttons & LED Indicators";
+"more.micLED" = "Mic LED";
+"more.general" = "General";
+"more.autoOff" = "Auto Off";
+
+"diag.title" = "Diagnostics";
+"diag.frames" = "Recent frames";
+"diag.reconnect" = "Reconnect";
+"diag.clear" = "Clear";
+"diag.export" = "Export…";
+"diag.close" = "Close";
+"diag.none" = "No receiver detected.";
+"diag.firmware" = "Firmware";
+"diag.serial" = "Serial";
+"diag.address" = "Address suffix";
+"diag.device" = "Transmitters";
+"diag.empty" = "No frames received yet.";
+
+"error.rejected" = "The receiver rejected the command.";
+"error.timeout" = "The receiver did not respond.";
+"error.disconnected" = "The receiver is disconnected.";
+"error.transport" = "USB error: %@";
+"error.unknown" = "%@";
