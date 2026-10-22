@@ -37,6 +37,35 @@ struct StatusBadge: View {
     }
 }
 
+/// Read-only value shown as a chip, matching the surface language of the
+/// panel's action chips. Used for settings the hardware controls itself, such
+/// as noise reduction.
+struct LockedValueBadge: View {
+    let value: String
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        HStack(spacing: 5) {
+            Image(systemName: "lock.fill")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundStyle(.secondary)
+                .symbolEffect(.pulse, value: value)
+
+            Text(value)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+                .contentTransition(.opacity)
+                .lineLimit(1)
+        }
+        .padding(.horizontal, 9)
+        .frame(height: 24)
+        .background(.secondary.opacity(0.10), in: Capsule())
+        .overlay(Capsule().strokeBorder(.secondary.opacity(0.18), lineWidth: 1))
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: value)
+    }
+}
+
 /// Maps the device's 7-level battery gauge to SF Symbols and copy.
 /// The gauge is not a percentage.
 private struct BatteryPresentation {

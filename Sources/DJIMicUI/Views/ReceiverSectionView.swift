@@ -98,14 +98,7 @@ struct ReceiverSectionView: View {
     private func noiseReductionRow(_ receiver: ReceiverState) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xxs) {
             SettingRow(title: L10n.s("rx.noiseReduction")) {
-                HStack(spacing: Spacing.xxs) {
-                    Text(noiseReductionLabel(receiver))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                    Image(systemName: "lock.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.tertiary)
-                }
+                LockedValueBadge(value: noiseReductionLabel(receiver))
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel("\(L10n.s("rx.noiseReduction")), \(noiseReductionLabel(receiver))")
