@@ -176,34 +176,91 @@ struct BatteryView: View {
     }
 }
 
+/// Input level meter. The gradient is anchored to the full track and masked by
+/// the current value, so colors do not shift when the level changes. A peak
+/// marker holds recent transients and decays back to the live level.
 struct LevelMeter: View {
     let level: Int?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    @State private var peak: Double = 0
+    @State private var liveValue: Double = 0
+    @State private var lastPeakAt = Date.distantPast
 
     private var value: Double {
         Double(min(max(level ?? 0, 0), 100))
     }
 
+    private var gradient: LinearGradient {
+        LinearGradient(
+            stops: [
+                .init(color: .green, location: 0),
+                .init(color: .green, location: 0.55),
+                .init(color: .yellow, location: 0.78),
+                .init(color: .orange, location: 0.92),
+                .init(color: .red, location: 1),
+            ],
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+
     var body: some View {
         GeometryReader { proxy in
+            let width = proxy.size.width
+            let fillWidth = max(width * value / 100, value > 0 ? 4 : 0)
+            let peakX = min(max(width * peak / 100 - 1, 0), max(width - 2, 0))
+
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(.quaternary)
+                    .fill(.secondary.opacity(0.14))
+                    .frame(height: 8)
 
                 Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [.green, .yellow, .orange],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
+                    .fill(gradient)
+                    .frame(height: 8)
+                    .mask(alignment: .leading) {
+                        Capsule()
+                            .frame(width: fillWidth)
+                    }
+                    .shadow(
+                        color: .orange.opacity(value >= 85 ? 0.45 : 0),
+                        radius: 3
                     )
-                    .frame(width: max(proxy.size.width * value / 100, value > 0 ? 3 : 0))
-                    .clipShape(Capsule())
-                    .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: value)
+
+                RoundedRectangle(cornerRadius: 1, style: .continuous)
+                    .fill(.primary.opacity(0.9))
+                    .frame(width: 2, height: 13)
+                    .shadow(color: .black.opacity(0.18), radius: 1)
+                    .offset(x: peakX)
+                    .opacity(peak > value + 0.5 ? 1 : 0)
+            }
+            .frame(maxHeight: .infinity)
+        }
+        .frame(height: 14)
+        .animation(reduceMotion ? nil : .linear(duration: 0.1), value: value)
+        .animation(reduceMotion ? nil : .linear(duration: 0.15), value: peak)
+        .onAppear {
+            liveValue = value
+            peak = value
+        }
+        .onChange(of: value) { _, newValue in
+            liveValue = newValue
+            if newValue >= peak {
+                peak = newValue
+                lastPeakAt = Date()
             }
         }
-        .frame(height: 6)
+        .task {
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .milliseconds(150))
+                guard Date().timeIntervalSince(lastPeakAt) > 0.8 else { continue }
+                let next = max(liveValue, peak - 1.5)
+                if next != peak {
+                    peak = next
+                }
+            }
+        }
         .accessibilityLabel(L10n.s("tx.inputLevel"))
         .accessibilityValue(L10n.format("accessibility.level", Int(value)))
     }

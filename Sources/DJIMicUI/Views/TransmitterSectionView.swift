@@ -41,7 +41,7 @@ struct TransmitterSectionView: View {
 
             SettingRow(title: L10n.s("tx.inputLevel")) {
                 LevelMeter(level: transmitter.inputLevel)
-                    .frame(width: 170)
+                    .frame(width: 210)
             }
 
             Divider()
