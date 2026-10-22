@@ -27,6 +27,18 @@ extension DeviceSnapshot {
             }
         case .voiceTone(let tone, let unit):
             transmitters[unit]?.voiceTone = tone
+        case .mute(let muted, let unit):
+            transmitters[unit]?.isMuted = muted
+        case .recording(let recording, let unit):
+            transmitters[unit]?.isRecording = recording
+        case .vibration(let enabled):
+            updateAllTransmitters { $0.vibrationEnabled = enabled }
+        case .float32Recording(let enabled):
+            updateAllTransmitters { $0.float32Recording = enabled }
+        case .recStopLock(let enabled):
+            updateAllTransmitters { $0.recStopLock = enabled }
+        case .startupAutoRecording(let enabled):
+            updateAllTransmitters { $0.startupAutoRecording = enabled }
         case .clippingControl(let value):
             receiver?.clippingControl = value
             updateAllTransmitters { $0.clippingControl = value }
@@ -61,6 +73,18 @@ extension DeviceSnapshot {
             }
         case .voiceTone(let tone, let unit):
             return transmitters[unit]?.voiceTone == tone
+        case .mute(let muted, let unit):
+            return transmitters[unit]?.isMuted == muted
+        case .recording(let recording, let unit):
+            return transmitters[unit]?.isRecording == recording
+        case .vibration(let enabled):
+            return transmitters.values.allSatisfy { $0.vibrationEnabled == enabled }
+        case .float32Recording(let enabled):
+            return transmitters.values.allSatisfy { $0.float32Recording == enabled }
+        case .recStopLock(let enabled):
+            return transmitters.values.allSatisfy { $0.recStopLock == enabled }
+        case .startupAutoRecording(let enabled):
+            return transmitters.values.allSatisfy { $0.startupAutoRecording == enabled }
         case .clippingControl(let value):
             return receiver?.clippingControl == value
         case .autoOffTX(let value):

@@ -46,6 +46,14 @@
 "tx.find.finding" = "Piscando…";
 "tx.find.hint" = "Pisca o LED deste transmissor e restaura o estado anterior.";
 "tx.notConnected" = "Transmissor não conectado.";
+"tx.mute" = "Mudo";
+"tx.mute.on" = "Mudo";
+"tx.rec" = "GRAVAR";
+"tx.rec.stop" = "Parar";
+"tx.recording" = "Gravação";
+"tx.format" = "Formato";
+
+"rx.safetyTrack.monoOnly" = "Disponível apenas no modo Mono.";
 
 "battery.unknown" = "Desconhecida";
 "battery.full" = "Cheia";
@@ -67,12 +75,23 @@
 "more.receiver" = "Receptor";
 "more.clipping" = "Controle de clipping";
 "more.clippingNote" = "Aplica-se ao receptor e aos transmissores.";
+"more.recording" = "Gravação interna";
+"more.vibration" = "Vibração";
+"more.vibrationNote" = "Vibra ao usar os botões do transmissor.";
+"more.float32" = "Gravação 32-bit float";
+"more.float32Note" = "Faixa dinâmica maior e mais precisão.";
+"more.startupRecording" = "Gravação automática ao ligar";
+"more.startupRecordingNote" = "Inicia a gravação quando o transmissor liga.";
+"more.recStopLock" = "Bloqueio de parada do REC";
+"more.recStopLockNote" = "O transmissor pode iniciar, mas não parar a gravação pelo botão.";
 
 "diag.title" = "Diagnóstico";
 "diag.frames" = "Frames recentes";
 "diag.frameCount" = "%d frames";
 "diag.deviceInfo" = "Dispositivo";
-"diag.receiver" = "Receptor";
+"diag.deviceName" = "Nome";
+"diag.protocolName" = "Nome no protocolo";
+"device.rxSeries" = "DJI Mic Series RX";
 "diag.reconnect" = "Reconectar";
 "diag.clear" = "Limpar";
 "diag.export" = "Exportar…";
@@ -85,6 +104,7 @@
 "diag.empty" = "Nenhum frame recebido ainda.";
 
 "error.rejected" = "O receptor rejeitou o comando.";
+"error.unsupported" = "Este ajuste não é suportado pelo dispositivo conectado.";
 "error.timeout" = "O receptor não respondeu.";
 "error.disconnected" = "O receptor está desconectado.";
 "error.transport" = "Erro USB: %@";

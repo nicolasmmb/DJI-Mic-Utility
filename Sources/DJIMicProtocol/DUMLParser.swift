@@ -7,8 +7,12 @@ import Foundation
 /// start-of-frame, and an incomplete frame is kept for the next `feed`.
 public struct DUMLParser: Sendable {
     private var buffer: [UInt8] = []
+    /// Layout used to interpret optional transmitter fields.
+    public var statusLayout: StatusLayout = .common
 
-    public init() {}
+    public init(statusLayout: StatusLayout = .common) {
+        self.statusLayout = statusLayout
+    }
 
     public mutating func reset() {
         buffer.removeAll(keepingCapacity: true)
@@ -71,10 +75,13 @@ public struct DUMLParser: Sendable {
         guard CRC.crc16(buffer[offset..<(end - 2)]) == expected else {
             return nil
         }
-        return Self.parse(frame: Array(buffer[offset..<end]))
+        return Self.parse(frame: Array(buffer[offset..<end]), statusLayout: statusLayout)
     }
 
-    public static func parse(frame: [UInt8]) -> ParsedFrame? {
+    public static func parse(
+        frame: [UInt8],
+        statusLayout: StatusLayout = .common
+    ) -> ParsedFrame? {
         guard frame.count >= 13, frame[0] == DUML.startOfFrame else { return nil }
 
         if frame[8] & 0x80 != 0 {
@@ -88,7 +95,7 @@ public struct DUMLParser: Sendable {
             return parseCommandOrUnknown(frame: frame, payload: payload)
         }
 
-        guard let push = parsePush(payload) else { return nil }
+        guard let push = parsePush(payload, statusLayout: statusLayout) else { return nil }
         return ParsedFrame(raw: frame, content: .push(push))
     }
 
@@ -111,14 +118,14 @@ public struct DUMLParser: Sendable {
 
     // MARK: - Push payloads
 
-    private static func parsePush(_ payload: [UInt8]) -> Push? {
+    private static func parsePush(_ payload: [UInt8], statusLayout: StatusLayout) -> Push? {
         guard payload.count >= 4 else { return nil }
 
         switch payload[3] {
         case 0x01:
             return .identity(parseIdentity(payload))
         case 0x03:
-            return .status(parseStatus(payload))
+            return .status(parseStatus(payload, statusLayout: statusLayout))
         case 0x05:
             return .level(parseLevel(payload))
         default:
@@ -170,11 +177,11 @@ public struct DUMLParser: Sendable {
         return identities
     }
 
-    private static func parseStatus(_ payload: [UInt8]) -> StatusPush {
+    private static func parseStatus(_ payload: [UInt8], statusLayout: StatusLayout) -> StatusPush {
         let reader = PayloadReader(payload)
         return StatusPush(
             receiver: parseReceiverState(reader),
-            transmitters: parseTransmitterStates(reader)
+            transmitters: parseTransmitterStates(reader, layout: statusLayout)
         )
     }
 
@@ -200,14 +207,22 @@ public struct DUMLParser: Sendable {
         )
     }
 
-    private static func parseTransmitterStates(_ reader: PayloadReader) -> [Int: TransmitterState] {
+    private static func parseTransmitterStates(
+        _ reader: PayloadReader,
+        layout: StatusLayout
+    ) -> [Int: TransmitterState] {
         var states: [Int: TransmitterState] = [:]
         var offset = 41
 
         while offset + 31 < reader.count {
             if let unit = reader.byte(at: offset + 1).flatMap(transmitterUnit),
                reader.byte(at: offset) == 0x02 {
-                states[unit] = parseTransmitterState(reader, at: offset, unit: unit)
+                states[unit] = parseTransmitterState(
+                    reader,
+                    at: offset,
+                    unit: unit,
+                    layout: layout
+                )
             }
             offset += 32
         }
@@ -218,9 +233,18 @@ public struct DUMLParser: Sendable {
     private static func parseTransmitterState(
         _ reader: PayloadReader,
         at offset: Int,
-        unit: Int
+        unit: Int,
+        layout: StatusLayout
     ) -> TransmitterState {
-        TransmitterState(
+        let slot = layout.transmitter
+        let recordingTime: (total: Double?, remaining: Double?) = {
+            guard let offsets = slot.recordingTime else { return (nil, nil) }
+            let total = reader.uint16(at: offset + offsets.total).map { Double($0) / 10 }
+            let remaining = reader.uint16(at: offset + offsets.remaining).map { Double($0) / 10 }
+            return (total, remaining)
+        }()
+
+        return TransmitterState(
             unit: unit,
             noiseCancelEnabled: reader.flag(at: offset + 7, mask: 0x01),
             noiseCancelStrong: reader.flag(at: offset + 6, mask: 0x20),
@@ -232,7 +256,17 @@ public struct DUMLParser: Sendable {
             clippingControl: reader.flag(at: offset + 8, mask: 0x04),
             voiceTone: parseVoiceTone(reader.byte(at: offset + 9) ?? 0),
             charging: reader.flag(at: offset + 7, mask: 0x02),
-            batteryGauge: Int((reader.byte(at: offset + 7) ?? 0) >> 2 & 0x07)
+            batteryGauge: Int((reader.byte(at: offset + 7) ?? 0) >> 2 & 0x07),
+            isMuted: slot.muteMask.map { reader.flag(at: offset + 6, mask: $0) } ?? false,
+            isRecording: slot.recordingMask.map { reader.flag(at: offset + 9, mask: $0) } ?? false,
+            vibrationEnabled: slot.vibrationMask.map { reader.flag(at: offset + 9, mask: $0) } ?? false,
+            float32Recording: slot.float32RecordingMask.map { reader.flag(at: offset + 9, mask: $0) } ?? false,
+            recStopLock: slot.recStopLockMask.map { reader.flag(at: offset + 11, mask: $0) } ?? false,
+            startupAutoRecording: slot.startupAutoRecordingMask.map {
+                reader.flag(at: offset + 8, mask: $0)
+            } ?? false,
+            recordingTimeTotal: recordingTime.total,
+            recordingTimeRemaining: recordingTime.remaining
         )
     }
 

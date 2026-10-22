@@ -55,9 +55,66 @@ struct MoreSettingsContent: View {
         )
     }
 
+    private func sharedCapability(_ key: SettingID) -> DeviceProfile? {
+        model.snapshot.systemProfile.sharedTransmitterCapability(for: key)
+    }
+
+    private var supportsVibration: Bool {
+        sharedCapability(.vibration) != nil
+    }
+
+    private var supportsFloat32: Bool {
+        sharedCapability(.float32Recording) != nil
+    }
+
+    private var supportsStartupRecording: Bool {
+        sharedCapability(.startupAutoRecording) != nil
+    }
+
+    private var supportsRecStopLock: Bool {
+        sharedCapability(.recStopLock) != nil
+    }
+
+    private var supportsRecordingSection: Bool {
+        supportsVibration || supportsFloat32 || supportsStartupRecording || supportsRecStopLock
+    }
+
+    private var vibrationBinding: Binding<Bool> {
+        model.settingBinding(
+            get: { transmitter?.vibrationEnabled ?? false },
+            setting: { .vibration($0) }
+        )
+    }
+
+    private var float32Binding: Binding<Bool> {
+        model.settingBinding(
+            get: { transmitter?.float32Recording ?? false },
+            setting: { .float32Recording($0) }
+        )
+    }
+
+    private var startupRecordingBinding: Binding<Bool> {
+        model.settingBinding(
+            get: { transmitter?.startupAutoRecording ?? false },
+            setting: { .startupAutoRecording($0) }
+        )
+    }
+
+    private var recStopLockBinding: Binding<Bool> {
+        model.settingBinding(
+            get: { transmitter?.recStopLock ?? false },
+            setting: { .recStopLock($0) }
+        )
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.lg) {
             transmitterSection
+
+            if supportsRecordingSection {
+                recordingSection
+            }
+
             receiverSection
 
             if !canEditTransmitterSettings {
@@ -99,6 +156,61 @@ struct MoreSettingsContent: View {
                 isOn: autoOffBinding,
                 isEnabled: canEditTransmitterSettings
             )
+        }
+    }
+
+    private var recordingSection: some View {
+        SettingsSection(
+            title: L10n.s("more.recording"),
+            systemImage: "record.circle"
+        ) {
+            if supportsVibration {
+                ToggleSettingRow(
+                    title: L10n.s("more.vibration"),
+                    subtitle: L10n.s("more.vibrationNote"),
+                    systemImage: "iphone.radiowaves.left.and.right",
+                    isOn: vibrationBinding,
+                    isEnabled: canEditTransmitterSettings
+                )
+            }
+
+            if supportsFloat32 {
+                if supportsVibration { Divider() }
+
+                ToggleSettingRow(
+                    title: L10n.s("more.float32"),
+                    subtitle: L10n.s("more.float32Note"),
+                    systemImage: "waveform",
+                    isOn: float32Binding,
+                    isEnabled: canEditTransmitterSettings
+                )
+            }
+
+            if supportsStartupRecording {
+                if supportsVibration || supportsFloat32 { Divider() }
+
+                ToggleSettingRow(
+                    title: L10n.s("more.startupRecording"),
+                    subtitle: L10n.s("more.startupRecordingNote"),
+                    systemImage: "play.circle",
+                    isOn: startupRecordingBinding,
+                    isEnabled: canEditTransmitterSettings
+                )
+            }
+
+            if supportsRecStopLock {
+                if supportsVibration || supportsFloat32 || supportsStartupRecording {
+                    Divider()
+                }
+
+                ToggleSettingRow(
+                    title: L10n.s("more.recStopLock"),
+                    subtitle: L10n.s("more.recStopLockNote"),
+                    systemImage: "lock.circle",
+                    isOn: recStopLockBinding,
+                    isEnabled: canEditTransmitterSettings
+                )
+            }
         }
     }
 

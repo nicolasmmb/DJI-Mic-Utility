@@ -5,6 +5,7 @@ public enum MicSessionError: Error, Equatable, Sendable {
     case disconnected
     case timeout
     case rejected
+    case unsupportedSetting
     case transport(String)
 }
 

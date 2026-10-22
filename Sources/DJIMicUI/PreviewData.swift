@@ -39,10 +39,10 @@ extension DeviceSnapshot {
             ),
             transmitterIdentities: [
                 1: DeviceIdentity(
-                    productName: "DJI Mic Mini 2",
-                    serial: "B3MTP3N015ZXMZ",
-                    firmware: "02.03.17.00",
-                    addressSuffix: "afb06d"
+                    productName: "DJI Mic 2",
+                    serial: "",
+                    firmware: "04.05.02.31",
+                    addressSuffix: "85f8c8"
                 ),
             ],
             receiver: ReceiverState(
@@ -69,7 +69,10 @@ extension DeviceSnapshot {
                     clippingControl: true,
                     voiceTone: .bright,
                     batteryGauge: 1,
-                    inputLevel: 42
+                    inputLevel: 42,
+                    float32Recording: true,
+                    recordingTimeTotal: 11.2,
+                    recordingTimeRemaining: 11.2
                 ),
             ]
         )

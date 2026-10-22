@@ -82,6 +82,14 @@ public struct TransmitterState: Equatable, Sendable, Identifiable {
     public var charging: Bool
     public var batteryGauge: Int
     public var inputLevel: Int?
+    public var isMuted: Bool
+    public var isRecording: Bool
+    public var vibrationEnabled: Bool
+    public var float32Recording: Bool
+    public var recStopLock: Bool
+    public var startupAutoRecording: Bool
+    public var recordingTimeTotal: Double?
+    public var recordingTimeRemaining: Double?
 
     public var id: Int { unit }
 
@@ -98,7 +106,15 @@ public struct TransmitterState: Equatable, Sendable, Identifiable {
         voiceTone: VoiceTone = .regular,
         charging: Bool = false,
         batteryGauge: Int = 0,
-        inputLevel: Int? = nil
+        inputLevel: Int? = nil,
+        isMuted: Bool = false,
+        isRecording: Bool = false,
+        vibrationEnabled: Bool = false,
+        float32Recording: Bool = false,
+        recStopLock: Bool = false,
+        startupAutoRecording: Bool = false,
+        recordingTimeTotal: Double? = nil,
+        recordingTimeRemaining: Double? = nil
     ) {
         self.unit = unit
         self.noiseCancelEnabled = noiseCancelEnabled
@@ -113,6 +129,14 @@ public struct TransmitterState: Equatable, Sendable, Identifiable {
         self.charging = charging
         self.batteryGauge = batteryGauge
         self.inputLevel = inputLevel
+        self.isMuted = isMuted
+        self.isRecording = isRecording
+        self.vibrationEnabled = vibrationEnabled
+        self.float32Recording = float32Recording
+        self.recStopLock = recStopLock
+        self.startupAutoRecording = startupAutoRecording
+        self.recordingTimeTotal = recordingTimeTotal
+        self.recordingTimeRemaining = recordingTimeRemaining
     }
 
     /// Gauge 1 = full, 7 = empty. The value is not a percentage.
@@ -163,6 +187,13 @@ public struct DeviceSnapshot: Equatable, Sendable {
 
     public var primaryIdentity: DeviceIdentity? {
         receiverIdentity ?? transmitterIdentities[1]
+    }
+
+    public var systemProfile: DeviceSystemProfile {
+        DeviceProfileResolver.resolve(
+            receiver: receiverIdentity,
+            transmitters: transmitterIdentities
+        )
     }
 
     public var menuBarSymbol: String {

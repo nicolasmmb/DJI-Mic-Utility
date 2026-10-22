@@ -68,14 +68,23 @@ struct ReceiverSectionView: View {
             )
         }
 
-        SettingRow(title: L10n.s("rx.safetyTrack")) {
-            ChipSwitch(
-                isOn: safetyTrackBinding,
-                isEnabled: isEditable,
-                label: L10n.s("rx.safetyTrack")
-            )
+        VStack(alignment: .leading, spacing: Spacing.xxs) {
+            SettingRow(title: L10n.s("rx.safetyTrack")) {
+                ChipSwitch(
+                    isOn: safetyTrackBinding,
+                    isEnabled: isEditable && !receiver.stereo,
+                    label: L10n.s("rx.safetyTrack")
+                )
+            }
+            .disabled(!isEditable)
+
+            if receiver.stereo {
+                Text(L10n.s("rx.safetyTrack.monoOnly"))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
-        .disabled(!isEditable)
     }
 
     private var unavailableMessage: some View {

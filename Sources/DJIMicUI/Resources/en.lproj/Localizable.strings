@@ -46,6 +46,14 @@
 "tx.find.finding" = "Blinking…";
 "tx.find.hint" = "Blinks this transmitter's LED, then restores the previous state.";
 "tx.notConnected" = "Transmitter not connected.";
+"tx.mute" = "Mute";
+"tx.mute.on" = "Muted";
+"tx.rec" = "REC";
+"tx.rec.stop" = "Stop";
+"tx.recording" = "Recording";
+"tx.format" = "Format";
+
+"rx.safetyTrack.monoOnly" = "Only available in Mono mode.";
 
 "battery.unknown" = "Unknown";
 "battery.full" = "Full";
@@ -67,12 +75,23 @@
 "more.receiver" = "Receiver";
 "more.clipping" = "Clipping Control";
 "more.clippingNote" = "Applies to the receiver and transmitters.";
+"more.recording" = "Internal Recording";
+"more.vibration" = "Vibration";
+"more.vibrationNote" = "Vibrates when using the transmitter buttons.";
+"more.float32" = "32-Bit Float Recording";
+"more.float32Note" = "Wider dynamic range and higher precision.";
+"more.startupRecording" = "Startup Auto Recording";
+"more.startupRecordingNote" = "Starts recording when the transmitter powers on.";
+"more.recStopLock" = "REC Stop Lock";
+"more.recStopLockNote" = "The transmitter can start but not stop recording with its button.";
 
 "diag.title" = "Diagnostics";
 "diag.frames" = "Recent frames";
 "diag.frameCount" = "%d frames";
 "diag.deviceInfo" = "Device";
-"diag.receiver" = "Receiver";
+"diag.deviceName" = "Name";
+"diag.protocolName" = "Protocol name";
+"device.rxSeries" = "DJI Mic Series RX";
 "diag.reconnect" = "Reconnect";
 "diag.clear" = "Clear";
 "diag.export" = "Export…";
@@ -85,6 +104,7 @@
 "diag.empty" = "No frames received yet.";
 
 "error.rejected" = "The receiver rejected the command.";
+"error.unsupported" = "This setting is not supported by the connected device.";
 "error.timeout" = "The receiver did not respond.";
 "error.disconnected" = "The receiver is disconnected.";
 "error.transport" = "USB error: %@";

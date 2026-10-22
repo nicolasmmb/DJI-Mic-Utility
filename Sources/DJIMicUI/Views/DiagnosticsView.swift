@@ -64,27 +64,34 @@ public struct DiagnosticsView: View {
 
     private var deviceSection: some View {
         SettingsSection(title: L10n.s("diag.deviceInfo"), systemImage: "cpu") {
-            Grid(alignment: .leading, horizontalSpacing: Spacing.md, verticalSpacing: 8) {
-                GridRow {
-                    infoLabel(L10n.s("diag.receiver"))
-                    infoValue(receiverName)
-                    infoLabel(L10n.s("diag.serial"))
-                    infoValue(model.snapshot.receiverIdentity?.serial, monospaced: true)
-                }
+            VStack(alignment: .leading, spacing: 8) {
+                Grid(alignment: .leading, horizontalSpacing: Spacing.md, verticalSpacing: 8) {
+                    GridRow {
+                        infoLabel(L10n.s("diag.deviceName"))
+                        infoValue(model.snapshot.receiverDisplayName)
+                        infoLabel(L10n.s("diag.serial"))
+                        infoValue(model.snapshot.receiverIdentity?.serial, monospaced: true)
+                    }
 
-                GridRow {
-                    infoLabel(L10n.s("diag.firmware"))
-                    infoValue(model.snapshot.receiverIdentity?.firmware, monospaced: true)
-                    infoLabel(L10n.s("diag.address"))
-                    infoValue(model.snapshot.receiverIdentity?.addressSuffix, monospaced: true)
-                }
+                    GridRow {
+                        infoLabel(L10n.s("diag.protocolName"))
+                        infoValue(model.snapshot.receiverIdentity?.productName)
+                        infoLabel(L10n.s("diag.firmware"))
+                        infoValue(model.snapshot.receiverIdentity?.firmware, monospaced: true)
+                    }
 
-                GridRow {
+                    GridRow {
+                        infoLabel(L10n.s("diag.address"))
+                        infoValue(model.snapshot.receiverIdentity?.addressSuffix, monospaced: true)
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+                HStack(alignment: .firstTextBaseline, spacing: Spacing.md) {
                     infoLabel(L10n.s("diag.device"))
                     infoValue(transmitterSummary)
                 }
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.vertical, 2)
         }
     }
@@ -169,22 +176,17 @@ public struct DiagnosticsView: View {
 
     // MARK: - Content
 
-    private var receiverName: String? {
-        model.snapshot.receiverIdentity?.productName
-            ?? model.snapshot.primaryIdentity?.productName
-    }
-
     private var transmitterSummary: String {
-        let identities = model.snapshot.transmitterIdentities
-            .sorted { $0.key < $1.key }
-            .map { "TX\($0.key): \($0.value.productName)" }
+        let names = model.snapshot.transmitterIdentities.keys.sorted().compactMap {
+            model.snapshot.transmitterDiagnosticName(unit: $0)
+        }
 
-        guard !identities.isEmpty else {
+        guard !names.isEmpty else {
             let units = model.snapshot.transmitters.keys.sorted().map { "TX\($0)" }
             return units.joined(separator: "  ")
         }
 
-        return identities.joined(separator: "  ")
+        return names.joined(separator: "  ")
     }
 
     private func nonEmpty(_ value: String?) -> String? {

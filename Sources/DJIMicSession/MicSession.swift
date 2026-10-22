@@ -29,6 +29,7 @@ public final class MicSession: MicClient, @unchecked Sendable {
     private var lastPublished: DeviceSnapshot?
     private var sequence = UInt16.random(in: 0...UInt16.max)
     private var pending: [UInt16: CheckedContinuation<Void, Error>] = [:]
+    private var systemProfile = DeviceSystemProfile.unknown
 
     public init(
         transport: USBTransporting = IOKitUSBTransport(),
@@ -96,10 +97,23 @@ public final class MicSession: MicClient, @unchecked Sendable {
             return
         }
 
+        let command: MicCommand
+        if systemProfile.isKnown {
+            guard let resolved = systemProfile.command(for: setting) else {
+                continuation.resume(throwing: MicSessionError.unsupportedSetting)
+                return
+            }
+            command = resolved
+        } else {
+            // Identity has not arrived yet; keep the legacy mapping so early
+            // commands still work.
+            command = setting.command
+        }
+
         let sequence = nextSequence()
         pending[sequence] = continuation
         scheduleAcknowledgementTimeout(for: sequence)
-        write(setting.command.encoded(sequence: sequence), sequence: sequence)
+        write(command.encoded(sequence: sequence), sequence: sequence)
     }
 
     private func write(_ packet: [UInt8], sequence: UInt16) {
@@ -147,6 +161,8 @@ public final class MicSession: MicClient, @unchecked Sendable {
         do {
             try transport.open()
             parser.reset()
+            systemProfile = .unknown
+            parser.statusLayout = .common
             hasConnected = true
             setConnection(.connected)
             log("USB interface opened")
@@ -204,8 +220,19 @@ public final class MicSession: MicClient, @unchecked Sendable {
         default:
             reducer.apply(frame.content, to: &state)
             state.updatedAt = Date()
+            if case .push(.identity) = frame.content {
+                refreshSystemProfile()
+            }
             publish()
         }
+    }
+
+    private func refreshSystemProfile() {
+        systemProfile = DeviceProfileResolver.resolve(
+            receiver: state.receiverIdentity,
+            transmitters: state.transmitterIdentities
+        )
+        parser.statusLayout = systemProfile.statusLayout
     }
 
     // MARK: - State publication

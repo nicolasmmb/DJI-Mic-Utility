@@ -142,4 +142,135 @@ private func syntheticAck(sequence: UInt16, value: UInt8) -> [UInt8] {
     #expect(MicSetting.micLED(true, unit: 1).command.target == .transmitter1)
     #expect(MicSetting.micLED(false, unit: 2).command.target == .transmitter2)
     #expect(MicSetting.micLED(false, unit: 2).command.value == 2)
+    #expect(MicSetting.mute(true, unit: 1).id == .mute)
+    #expect(MicSetting.recording(true, unit: 2).id == .recording)
+}
+
+@Test func resolvesHybridReceiverAndTransmitterProfiles() {
+    let receiver = DeviceIdentity(
+        productName: "DJI Mic Mini 2",
+        serial: "RX",
+        firmware: "02.03.17.00",
+        addressSuffix: "eda630"
+    )
+    let transmitter = DeviceIdentity(
+        productName: "DJI Mic 2",
+        serial: "",
+        firmware: "04.05.02.31",
+        addressSuffix: "85f8c8"
+    )
+
+    let system = DeviceProfileResolver.resolve(
+        receiver: receiver,
+        transmitters: [1: transmitter]
+    )
+
+    #expect(system.receiver.family == .micMini2)
+    #expect(system.transmitters[1]?.family == .mic2)
+    #expect(system.transmitters[1]?.capabilities.supports(.mute) == true)
+    #expect(system.transmitters[1]?.capabilities.supports(.recording) == true)
+    #expect(system.receiver.capabilities.supports(.mute) == false)
+    #expect(system.receiver.capabilities.supports(.noiseControl) == false)
+}
+
+@Test func familyUsesFullProductNamesOnly() {
+    func identity(_ name: String) -> DeviceIdentity {
+        DeviceIdentity(productName: name, serial: "", firmware: "99.99.99.99", addressSuffix: "")
+    }
+
+    #expect(DeviceProfileResolver.family(for: identity("DJI Mic Mini 2")) == .micMini2)
+    #expect(DeviceProfileResolver.family(for: identity("DJI Mic 2")) == .mic2)
+    #expect(DeviceProfileResolver.family(for: identity("DJI Mic")) == .unknown)
+    #expect(DeviceProfileResolver.family(for: nil) == .unknown)
+}
+
+@Test func mic2CommandsUseValidatedTargets() throws {
+    let system = DeviceProfileResolver.resolve(
+        receiver: nil,
+        transmitters: [
+            1: DeviceIdentity(
+                productName: "DJI Mic 2",
+                serial: "",
+                firmware: "04.05.02.31",
+                addressSuffix: "85f8c8"
+            ),
+        ]
+    )
+
+    let mute = try #require(system.command(for: .mute(true, unit: 1)))
+    #expect(mute.command == 0x0009)
+    #expect(mute.target == .transmitter1)
+    #expect(mute.value == 1)
+
+    let recording = try #require(system.command(for: .recording(true, unit: 1)))
+    #expect(recording.command == 0x0002)
+    #expect(recording.target == .transmitter1)
+
+    let vibration = try #require(system.command(for: .vibration(true)))
+    #expect(vibration.command == 0x0004)
+    #expect(vibration.target == .allTransmitters)
+
+    let float32 = try #require(system.command(for: .float32Recording(false)))
+    #expect(float32.command == 0x000C)
+
+    #expect(system.command(for: .voiceTone(.bright, unit: 1)) == nil)
+}
+
+@Test func mic2StatusExtensionsParse() throws {
+    var payload = [UInt8](repeating: 0, count: 73)
+    payload[3] = 0x03
+
+    let slot = 41
+    payload[slot] = 0x02
+    payload[slot + 1] = 0x01
+    payload[slot + 6] = 0x04   // muted
+    payload[slot + 8] = 0x80   // startup auto recording
+    payload[slot + 9] = 0x39   // recording + float32 + vibration + low cut
+    payload[slot + 11] = 0x20  // rec stop lock
+    payload[slot + 14] = 0x70  // 112 -> 11.2h
+    payload[slot + 15] = 0x00
+    payload[slot + 16] = 0x96  // 150 -> 15.0h
+    payload[slot + 17] = 0x00
+
+    let frame = pushFrame(payload)
+    var parser = DUMLParser(statusLayout: .mic2)
+    let frames = parser.feed(Data(frame))
+
+    #expect(frames.count == 1)
+    guard case .push(.status(let push)) = try #require(frames.first).content else {
+        Issue.record("expected status push")
+        return
+    }
+
+    let tx = try #require(push.transmitters[1])
+    #expect(tx.isMuted)
+    #expect(tx.isRecording)
+    #expect(tx.float32Recording)
+    #expect(tx.vibrationEnabled)
+    #expect(tx.recStopLock)
+    #expect(tx.startupAutoRecording)
+    #expect(tx.recordingTimeTotal == 11.2)
+    #expect(tx.recordingTimeRemaining == 15.0)
+}
+
+private func pushFrame(_ payload: [UInt8]) -> [UInt8] {
+    let total = payload.count + 13
+    var frame: [UInt8] = [
+        0x55,
+        UInt8(total & 0xFF),
+        UInt8((total >> 8) & 0x03),
+        0x00,
+        0x5A,
+        0x02,
+        0x00,
+        0x00,
+        0x00,
+        0x5B,
+        0x03,
+    ]
+    frame[3] = CRC.crc8(frame[0..<3])
+    frame += payload
+    let checksum = CRC.crc16(frame)
+    frame += [UInt8(checksum & 0xFF), UInt8((checksum >> 8) & 0xFF)]
+    return frame
 }

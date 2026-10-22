@@ -19,6 +19,8 @@ private extension MicSessionError {
             L10n.s("error.timeout")
         case .rejected:
             L10n.s("error.rejected")
+        case .unsupportedSetting:
+            L10n.s("error.unsupported")
         case .transport(let message):
             L10n.format("error.transport", message)
         }

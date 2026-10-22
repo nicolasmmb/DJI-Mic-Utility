@@ -1,4 +1,5 @@
 import DJIMicProtocol
+import Foundation
 import SwiftUI
 
 struct TransmitterSectionView: View {
@@ -13,6 +14,22 @@ struct TransmitterSectionView: View {
         model.findingUnit == transmitter.unit
     }
 
+    private var profile: DeviceProfile? {
+        model.snapshot.systemProfile.transmitters[transmitter.unit]
+    }
+
+    private var supportsVoiceTone: Bool {
+        profile?.capabilities.supports(.voiceTone) ?? true
+    }
+
+    private var supportsMute: Bool {
+        profile?.capabilities.supports(.mute) ?? false
+    }
+
+    private var supportsRecording: Bool {
+        profile?.capabilities.supports(.recording) ?? false
+    }
+
     private var voiceToneBinding: Binding<VoiceTone> {
         model.settingBinding(
             get: { transmitter.voiceTone },
@@ -21,7 +38,7 @@ struct TransmitterSectionView: View {
     }
 
     private var transmitterName: String? {
-        model.snapshot.transmitterIdentities[transmitter.unit]?.productName
+        model.snapshot.transmitterDisplayName(unit: transmitter.unit)
     }
 
     var body: some View {
@@ -29,31 +46,87 @@ struct TransmitterSectionView: View {
             title: L10n.format("tx.title", transmitter.unit),
             detail: transmitterName
         ) {
-            SettingRow(title: L10n.s("tx.voiceTone")) {
-                SegmentedChipSelector(
-                    selection: voiceToneBinding,
-                    values: VoiceTone.allCases,
-                    isEnabled: isEditable,
-                    label: voiceToneLabel
-                )
+            if supportsVoiceTone {
+                SettingRow(title: L10n.s("tx.voiceTone")) {
+                    SegmentedChipSelector(
+                        selection: voiceToneBinding,
+                        values: VoiceTone.allCases,
+                        isEnabled: isEditable,
+                        label: voiceToneLabel
+                    )
+                }
+                .disabled(!isEditable)
             }
-            .disabled(!isEditable)
 
             SettingRow(title: L10n.s("tx.inputLevel")) {
                 LevelMeter(level: transmitter.inputLevel)
                     .frame(width: 210)
             }
 
+            if supportsRecording {
+                SettingRow(title: L10n.s("tx.recording")) {
+                    HStack(spacing: Spacing.xs) {
+                        recordButton
+
+                        if let time = recordingTimeText {
+                            Text(time)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                        }
+                    }
+                }
+            }
+
             Divider()
                 .padding(.vertical, Spacing.xxs)
 
-            HStack(alignment: .center, spacing: Spacing.sm) {
+            HStack(alignment: .center, spacing: Spacing.xs) {
                 BatteryView(transmitter: transmitter, showsLabel: true)
                 Spacer(minLength: 0)
+
+                if supportsMute {
+                    muteButton
+                }
+
                 findButton
             }
             .frame(minHeight: 30)
         }
+    }
+
+    private var muteButton: some View {
+        TXActionButton(
+            systemImage: transmitter.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill",
+            title: transmitter.isMuted ? L10n.s("tx.mute.on") : L10n.s("tx.mute"),
+            isActive: transmitter.isMuted,
+            activeTint: .orange,
+            isEnabled: isEditable,
+            action: {
+                model.send(.mute(!transmitter.isMuted, unit: transmitter.unit))
+            }
+        )
+    }
+
+    private var recordButton: some View {
+        TXActionButton(
+            systemImage: transmitter.isRecording ? "stop.circle.fill" : "record.circle",
+            title: transmitter.isRecording ? L10n.s("tx.rec.stop") : L10n.s("tx.rec"),
+            isActive: transmitter.isRecording,
+            activeTint: .red,
+            isEnabled: isEditable,
+            action: {
+                model.send(.recording(!transmitter.isRecording, unit: transmitter.unit))
+            }
+        )
+    }
+
+    private var recordingTimeText: String? {
+        guard let total = transmitter.recordingTimeTotal,
+              let remaining = transmitter.recordingTimeRemaining else {
+            return nil
+        }
+        return String(format: "%.1fh / %.1fh", total, remaining)
     }
 
     private var findButton: some View {
@@ -70,6 +143,51 @@ struct TransmitterSectionView: View {
         case .rich: L10n.s("tx.voiceTone.rich")
         case .bright: L10n.s("tx.voiceTone.bright")
         }
+    }
+}
+
+/// Compact round action used for mute and REC on a transmitter card.
+private struct TXActionButton: View {
+    let systemImage: String
+    let title: String
+    let isActive: Bool
+    let activeTint: Color
+    var isEnabled = true
+    let action: () -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isHovering = false
+
+    private var fill: Color {
+        if isActive { return activeTint.opacity(0.14) }
+        return .secondary.opacity(isHovering && isEnabled ? 0.18 : 0.10)
+    }
+
+    private var stroke: Color {
+        if isActive { return activeTint.opacity(0.35) }
+        return .secondary.opacity(isHovering && isEnabled ? 0.32 : 0.18)
+    }
+
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(isActive ? activeTint : (isHovering ? Color.primary : Color.secondary))
+                .frame(width: 26, height: 26)
+                .background(fill, in: Circle())
+                .overlay(Circle().strokeBorder(stroke, lineWidth: 1))
+                .contentShape(Circle())
+        }
+        .buttonStyle(PressableChipButtonStyle(reduceMotion: reduceMotion))
+        .onHover { hovering in
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) {
+                isHovering = hovering
+            }
+        }
+        .opacity(isEnabled ? 1 : 0.5)
+        .disabled(!isEnabled)
+        .help(title)
+        .accessibilityLabel(title)
     }
 }
 
