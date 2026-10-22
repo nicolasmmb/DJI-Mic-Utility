@@ -19,7 +19,8 @@ public enum MicSetting: Sendable, Equatable {
     case safetyTrack(Bool)
     case stereo(Bool)
     case lowCut(Bool)
-    case micLED(Bool)
+    /// `unit == nil` targets every transmitter; `1`/`2` target a single TX.
+    case micLED(Bool, unit: Int?)
     case voiceTone(VoiceTone, unit: Int)
     case clippingControl(Bool)
     case autoOffTX(Bool)
@@ -52,8 +53,14 @@ public enum MicSetting: Sendable, Equatable {
             return MicCommand(target: .receiver, command: 0x0008, value: stereo ? 2 : 0)
         case .lowCut(let enabled):
             return MicCommand(target: .allTransmitters, command: 0x0003, value: enabled ? 1 : 0)
-        case .micLED(let enabled):
-            return MicCommand(target: .allTransmitters, command: 0x000A, value: enabled ? 0 : 2)
+        case .micLED(let enabled, let unit):
+            let target: CommandTarget
+            switch unit {
+            case .some(1): target = .transmitter1
+            case .some(2): target = .transmitter2
+            default: target = .allTransmitters
+            }
+            return MicCommand(target: target, command: 0x000A, value: enabled ? 0 : 2)
         case .voiceTone(let tone, let unit):
             return MicCommand(
                 target: unit == 2 ? .transmitter2 : .transmitter1,

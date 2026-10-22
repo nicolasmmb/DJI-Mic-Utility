@@ -10,6 +10,10 @@ struct TransmitterSectionView: View {
         model.snapshot.connection.isConnected
     }
 
+    private var isFinding: Bool {
+        model.findingUnit == transmitter.unit
+    }
+
     var body: some View {
         SettingsSection(
             title: L10n.format("tx.title", transmitter.unit),
@@ -36,6 +40,25 @@ struct TransmitterSectionView: View {
 
             SettingRow(title: L10n.s("tx.battery")) {
                 BatteryView(transmitter: transmitter)
+            }
+
+            SettingRow(title: L10n.s("tx.find")) {
+                Button {
+                    model.findTransmitter(unit: transmitter.unit)
+                } label: {
+                    HStack(spacing: Spacing.xxs) {
+                        Image(systemName: isFinding ? "light.beacon.max.fill" : "light.beacon.max")
+                        Text(isFinding ? L10n.s("tx.find.finding") : L10n.s("tx.find.action"))
+                    }
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(.secondary)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.borderless)
+                .disabled(!enabled || model.findingUnit != nil)
+                .accessibilityLabel(L10n.s("tx.find"))
+                .accessibilityValue(isFinding ? L10n.s("tx.find.finding") : L10n.s("tx.find.action"))
+                .help(L10n.s("tx.find.hint"))
             }
         }
     }

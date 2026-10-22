@@ -11,7 +11,7 @@ físico também foi observado (LED).
 | Safety track | `0x0021` | `0x0000` | on/off | `0x00` | sim (`payload[37]`) | validado |
 | Mono/Stereo | `0x0008` | `0x0000` | mono, stereo | `0x00` | sim (`payload[10]`) | validado |
 | Low cut | `0x0003` | `0xffff` | on/off | `0x00` | sim (slot TX) | validado |
-| LEDs | `0x000a` | `0xffff` | on/off | `0x00` | sim (slot TX) | validado |
+| LEDs | `0x000a` | `0xffff` | on/off | `0x00` | sim (slot TX) | validado (broadcast) |
 | Voice tone | `0x0029` | `0x0001` | regular, bright | `0x00` | sim (slot TX) | validado |
 | Clipping control | `0x001e` | `0x0000` | off/on | `0x00` | sim, RX e TX | validado |
 | Clipping control (alias) | `0x0024` | `0x0000` | off/on | `0x00` | mesmo efeito do `0x001e` | validado |
@@ -46,6 +46,8 @@ físico também foi observado (LED).
 
 ## Ainda não validado
 
+- Mic LED com target por TX (`0x000a` + `0x0001`/`0x0002`), usado pelo
+  Find my TX; só o broadcast `0xffff` foi validado
 - Turn on with camera (`0x0020`)
 - Plug-free external speaker (`0x0023`) — reinicia o RX, deixar para o fim
 - Faixa completa do gauge de bateria do TX (só o valor `1` foi observado)

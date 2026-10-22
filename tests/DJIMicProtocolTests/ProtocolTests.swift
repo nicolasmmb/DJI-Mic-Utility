@@ -137,5 +137,9 @@ private func syntheticAck(sequence: UInt16, value: UInt8) -> [UInt8] {
 @Test func settingIdsAreStable() {
     #expect(MicSetting.gain(6).id == .gain)
     #expect(MicSetting.voiceTone(.bright, unit: 2).command.target == .transmitter2)
-    #expect(MicSetting.micLED(false).command.value == 2)
+    #expect(MicSetting.micLED(false, unit: nil).command.value == 2)
+    #expect(MicSetting.micLED(true, unit: nil).command.target == .allTransmitters)
+    #expect(MicSetting.micLED(true, unit: 1).command.target == .transmitter1)
+    #expect(MicSetting.micLED(false, unit: 2).command.target == .transmitter2)
+    #expect(MicSetting.micLED(false, unit: 2).command.value == 2)
 }

@@ -16,11 +16,14 @@ public final class AppModel {
     public private(set) var pendingSettings: Set<SettingID> = []
     public private(set) var errorMessage: String?
     public private(set) var diagnosticLines: [DiagnosticLine] = []
+    /// Transmitter currently blinking its LED, if a find is running.
+    public private(set) var findingUnit: Int?
 
     private let session: any MicClient
     private var snapshotTask: Task<Void, Never>?
     private var eventTask: Task<Void, Never>?
     private var errorTask: Task<Void, Never>?
+    private var findTask: Task<Void, Never>?
 
     public init(
         session: any MicClient = MicSession(),
@@ -54,8 +57,11 @@ public final class AppModel {
     public func stop() {
         snapshotTask?.cancel()
         eventTask?.cancel()
+        findTask?.cancel()
         snapshotTask = nil
         eventTask = nil
+        findTask = nil
+        findingUnit = nil
         session.stop()
     }
 
@@ -68,6 +74,8 @@ public final class AppModel {
     public func send(_ setting: MicSetting) {
         let id = setting.id
         guard !pendingSettings.contains(id) else { return }
+        // A find owns the LEDs while it runs; do not fight its animation.
+        if findingUnit != nil, id == .micLED { return }
 
         pendingSettings.insert(id)
         applyOptimistic(setting)
@@ -98,9 +106,13 @@ public final class AppModel {
             for unit in snapshot.transmitters.keys {
                 snapshot.transmitters[unit]?.lowCut = value
             }
-        case .micLED(let value):
-            for unit in snapshot.transmitters.keys {
+        case .micLED(let value, let unit):
+            if let unit {
                 snapshot.transmitters[unit]?.ledsOff = !value
+            } else {
+                for unit in snapshot.transmitters.keys {
+                    snapshot.transmitters[unit]?.ledsOff = !value
+                }
             }
         case .voiceTone(let tone, let unit):
             snapshot.transmitters[unit]?.voiceTone = tone
@@ -116,6 +128,67 @@ public final class AppModel {
         case .autoOffRX(let value):
             snapshot.receiver?.autoOff = value
         }
+    }
+
+    /// Blinks one transmitter's LED so the user can identify the physical unit.
+    ///
+    /// The mic LED command is a persistent toggle, not a momentary blink, so
+    /// the state captured before the animation is always written back: on
+    /// completion, on cancellation and after a rejected command.
+    @discardableResult
+    public func findTransmitter(
+        unit: Int,
+        blinks: Int = 4,
+        interval: Duration = .milliseconds(350)
+    ) -> Task<Void, Never>? {
+        guard snapshot.connection.isConnected,
+              snapshot.transmitters[unit] != nil,
+              findingUnit == nil else { return nil }
+
+        let originalLEDsOff = snapshot.transmitters[unit]?.ledsOff ?? false
+        findingUnit = unit
+        appendDiagnostic("Find transmitter \(unit) started")
+
+        let task = Task { [weak self] in
+            guard let self else { return }
+            defer {
+                self.findingUnit = nil
+                self.findTask = nil
+                self.appendDiagnostic("Find transmitter \(unit) finished")
+            }
+
+            var failure: Error?
+            do {
+                for _ in 0..<max(1, blinks) {
+                    try Task.checkCancellation()
+                    try await self.session.send(.micLED(true, unit: unit))
+                    try await Task.sleep(for: interval)
+                    try Task.checkCancellation()
+                    try await self.session.send(.micLED(false, unit: unit))
+                    try await Task.sleep(for: interval)
+                }
+            } catch is CancellationError {
+                // Restore below.
+            } catch {
+                failure = error
+            }
+
+            // `send` does not observe cancellation, so the restore still runs
+            // when the panel closes mid-animation.
+            do {
+                try await self.session.send(.micLED(!originalLEDsOff, unit: unit))
+            } catch is CancellationError {
+                // Nothing to recover here; the command was already sent.
+            } catch {
+                if failure == nil { failure = error }
+            }
+
+            if let failure {
+                self.showError(self.localizedMessage(for: failure))
+            }
+        }
+        findTask = task
+        return task
     }
 
     public func isPending(_ id: SettingID) -> Bool {

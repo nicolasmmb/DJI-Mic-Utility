@@ -138,10 +138,13 @@ Slots de 7 bytes a partir de `payload[3]`. `payload[3] = 0x05`,
 | Safety track | `0x0021` | RX | 0/1 | status `payload[37]` bit 6 |
 | Mono/Stereo | `0x0008` | RX | 0 / 2 | status `payload[10]` bit 2 |
 | Low cut | `0x0003` | broadcast | 0/1 | slot TX `+9` bit 5 |
-| LEDs (Mic LED) | `0x000a` | broadcast | 0 = on, 2 = off | slot TX `+6` bit 1 |
+| LEDs (Mic LED) | `0x000a` | broadcast* | 0 = on, 2 = off | slot TX `+6` bit 1 |
 | Voice tone | `0x0029` | TX1/TX2 | 0/1/2 | slot TX `+9` bits 6–7 |
 | Clipping control | `0x001e` ou `0x0024` | RX | 0/1 | RX `payload[37]` bit 4 e TX slot `+8` bit 2 |
 | Auto-off do TX | `0x0010` | broadcast | 0/1 | slot TX `+6` bit 4 |
 | Auto-off do RX | `0x0010` | RX | 0/1 | RX `payload[10]` bit 0 |
 | Bateria do TX | — | — | leitura | slot TX `+7` bits 2–4; `+7` bit 1 = carregando |
 | NC ligado/forte | `0x0038` / `0x0037` | qualquer | — | **rejeitado (`0xff`)** |
+
+\* Só o target broadcast foi validado. O app envia `0x000A` para TX1/TX2 no
+Find my TX, mas esse target ainda não foi confirmado no hardware.

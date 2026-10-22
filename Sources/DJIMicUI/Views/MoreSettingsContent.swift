@@ -51,7 +51,7 @@ struct MoreSettingsContent: View {
                         .toggleStyle(.switch)
                         .accessibilityLabel(L10n.s("more.micLED"))
                 }
-                .disabled(!enabled)
+                .disabled(!enabled || model.findingUnit != nil)
             }
 
             SettingsSection(title: L10n.s("more.general")) {
@@ -100,7 +100,7 @@ struct MoreSettingsContent: View {
             set: { newValue in
                 let current = !(transmitter?.ledsOff ?? true)
                 guard newValue != current else { return }
-                model.send(.micLED(newValue))
+                model.send(.micLED(newValue, unit: nil))
             }
         )
     }
