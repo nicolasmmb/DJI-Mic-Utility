@@ -7,9 +7,17 @@ O receptor é a ponte entre o host e o transmissor: o app fala com o RX por USB
 bulk (interface 6) e o RX encaminha os comandos para o TX por 2,4 GHz. Não há
 USB direto no transmissor.
 
+## Contexto para novos chats
+
+Leia [`docs/README.md`](docs/README.md). Ele aponta para o contexto do projeto,
+o handbook de engenharia reversa, o protocolo, a matriz de testes, as
+referências e o backlog. Skills autocontidas do OpenCode ficam em
+`.opencode/skills/`.
+
 ## Estado atual
 
 - Protocolo DUML v2 identificado e reimplementado do zero.
+- App macOS nativo na barra de menus, em Swift/SwiftUI.
 - Probe em Python validado no hardware real:
   - leitura de identidade, firmware, status, bateria e nível de áudio;
   - escrita de gain, monitoring gain, safety track, mono/stereo, low cut,
@@ -51,9 +59,12 @@ O POC Python continua intacto em `tools/poc/`.
 
 ## Próximos passos
 
-1. Esclarecer os frames periódicos `5b 04` e validar o bit de carregamento.
-2. Portar o protocolo validado para um módulo Swift interno.
-3. App SwiftUI nativo usando IOKit, sem dependências de terceiros.
+1. Esclarecer os frames periódicos `5b 04` e validar o carregamento do TX.
+2. Implementar presets, perfil por app e notificações.
+3. Evoluir o medidor de áudio e o diagnóstico.
+4. Pesquisar mute, RSSI, bateria via BLE e internal recording.
+
+Backlog completo: [`docs/feature-ideas.md`](docs/feature-ideas.md).
 
 ## Regra do repositório
 
