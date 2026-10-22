@@ -39,9 +39,12 @@ struct ReceiverSectionView: View {
 
     @ViewBuilder
     private func receiverSettings(_ receiver: ReceiverState) -> some View {
-        noiseReductionRow(receiver)
+        SettingsGroupLabel(title: L10n.s("rx.group.levels"))
 
-        SettingRow(title: L10n.s("rx.gain")) {
+        SettingRow(
+            title: L10n.s("rx.gain"),
+            systemImage: "slider.horizontal.3"
+        ) {
             SegmentedChipSelector(
                 selection: gainBinding,
                 values: [-12, -6, 0, 6, 12],
@@ -57,7 +60,15 @@ struct ReceiverSectionView: View {
             ) { model.send(.monitoringGain($0)) }
         }
 
-        SettingRow(title: L10n.s("rx.audioChannel")) {
+        Divider()
+            .padding(.vertical, 2)
+
+        SettingsGroupLabel(title: L10n.s("rx.group.channel"))
+
+        SettingRow(
+            title: L10n.s("rx.audioChannel"),
+            systemImage: "rectangle.split.2x1"
+        ) {
             SegmentedChipSelector(
                 selection: stereoBinding,
                 values: [false, true],
@@ -69,7 +80,10 @@ struct ReceiverSectionView: View {
         }
 
         VStack(alignment: .leading, spacing: Spacing.xxs) {
-            SettingRow(title: L10n.s("rx.safetyTrack")) {
+            SettingRow(
+                title: L10n.s("rx.safetyTrack"),
+                systemImage: "shield.lefthalf.filled"
+            ) {
                 ChipSwitch(
                     isOn: safetyTrackBinding,
                     isEnabled: isEditable && !receiver.stereo,
@@ -80,11 +94,18 @@ struct ReceiverSectionView: View {
 
             if receiver.stereo {
                 Text(L10n.s("rx.safetyTrack.monoOnly"))
-                    .font(.caption)
+                    .font(.system(size: 11.5))
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+                    .padding(.leading, 32)
             }
         }
+
+        Divider()
+            .padding(.vertical, 2)
+
+        SettingsGroupLabel(title: L10n.s("rx.group.noise"))
+        noiseReductionRow(receiver)
     }
 
     private var unavailableMessage: some View {
@@ -102,18 +123,15 @@ struct ReceiverSectionView: View {
     }
 
     private func noiseReductionRow(_ receiver: ReceiverState) -> some View {
-        VStack(alignment: .leading, spacing: Spacing.xxs) {
-            SettingRow(title: L10n.s("rx.noiseReduction")) {
-                LockedValueBadge(value: noiseReductionLabel(receiver))
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("\(L10n.s("rx.noiseReduction")), \(noiseReductionLabel(receiver))")
-
-            Text(L10n.s("rx.noiseReduction.locked"))
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+        SettingRow(
+            title: L10n.s("rx.noiseReduction"),
+            subtitle: L10n.s("rx.noiseReduction.locked"),
+            systemImage: "waveform"
+        ) {
+            LockedValueBadge(value: noiseReductionLabel(receiver))
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(L10n.s("rx.noiseReduction")), \(noiseReductionLabel(receiver))")
     }
 
     private func noiseReductionLabel(_ receiver: ReceiverState) -> String {

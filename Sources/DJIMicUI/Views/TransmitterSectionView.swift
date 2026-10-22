@@ -6,6 +6,8 @@ struct TransmitterSectionView: View {
     let model: AppModel
     let transmitter: TransmitterState
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     private var isEditable: Bool {
         model.snapshot.connection.isConnected
     }
@@ -44,10 +46,24 @@ struct TransmitterSectionView: View {
     var body: some View {
         SettingsSection(
             title: L10n.format("tx.title", transmitter.unit),
-            detail: transmitterName
+            detail: transmitterName,
+            headerTrailing: supportsMute || supportsRecording
+                ? AnyView(headerActions)
+                : nil
         ) {
+            SettingRow(
+                title: L10n.s("tx.inputLevel"),
+                systemImage: "waveform"
+            ) {
+                LevelMeter(level: transmitter.inputLevel)
+                    .frame(width: 210)
+            }
+
             if supportsVoiceTone {
-                SettingRow(title: L10n.s("tx.voiceTone")) {
+                SettingRow(
+                    title: L10n.s("tx.voiceTone"),
+                    systemImage: "waveform.path"
+                ) {
                     SegmentedChipSelector(
                         selection: voiceToneBinding,
                         values: VoiceTone.allCases,
@@ -58,23 +74,36 @@ struct TransmitterSectionView: View {
                 .disabled(!isEditable)
             }
 
-            SettingRow(title: L10n.s("tx.inputLevel")) {
-                LevelMeter(level: transmitter.inputLevel)
-                    .frame(width: 210)
-            }
-
             if supportsRecording {
-                SettingRow(title: L10n.s("tx.recording")) {
+                SettingRow(
+                    title: L10n.s("tx.recording"),
+                    systemImage: "record.circle"
+                ) {
                     HStack(spacing: Spacing.xs) {
-                        recordButton
+                        if transmitter.isRecording {
+                            HStack(spacing: 4) {
+                                Circle()
+                                    .fill(.red)
+                                    .frame(width: 6, height: 6)
+                                Text(L10n.s("tx.rec"))
+                                    .font(.system(size: 9.5, weight: .bold, design: .rounded))
+                                    .foregroundStyle(.red)
+                            }
+                            .transition(.opacity.combined(with: .scale))
+                        }
 
                         if let time = recordingTimeText {
                             Text(time)
-                                .font(.caption)
+                                .font(.system(size: 12, weight: .medium, design: .rounded))
                                 .foregroundStyle(.secondary)
                                 .monospacedDigit()
+                                .contentTransition(.numericText())
                         }
                     }
+                    .animation(
+                        reduceMotion ? nil : .snappy(duration: 0.25),
+                        value: transmitter.isRecording
+                    )
                 }
             }
 
@@ -84,14 +113,21 @@ struct TransmitterSectionView: View {
             HStack(alignment: .center, spacing: Spacing.xs) {
                 BatteryView(transmitter: transmitter, showsLabel: true)
                 Spacer(minLength: 0)
-
-                if supportsMute {
-                    muteButton
-                }
-
                 findButton
             }
             .frame(minHeight: 30)
+        }
+    }
+
+    private var headerActions: some View {
+        HStack(spacing: 8) {
+            if supportsMute {
+                muteButton
+            }
+
+            if supportsRecording {
+                recordButton
+            }
         }
     }
 

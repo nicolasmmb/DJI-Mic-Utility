@@ -1,5 +1,35 @@
 import SwiftUI
 
+struct SettingsGroupLabel: View {
+    let title: String
+
+    var body: some View {
+        Text(title.uppercased())
+            .font(.system(size: 9.5, weight: .semibold, design: .rounded))
+            .tracking(0.8)
+            .foregroundStyle(.secondary)
+            .padding(.leading, 2)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
+struct SettingsScopeBadge: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(.system(size: 8.5, weight: .bold, design: .rounded))
+            .tracking(0.4)
+            .foregroundStyle(.secondary)
+            .padding(.horizontal, 6)
+            .frame(height: 15)
+            .background(.primary.opacity(0.06), in: Capsule())
+            .overlay(Capsule().strokeBorder(.primary.opacity(0.12), lineWidth: 0.7))
+            .fixedSize()
+            .accessibilityLabel(text)
+    }
+}
+
 struct SectionHeader: View {
     let title: String
     var systemImage: String?
@@ -40,6 +70,7 @@ struct SettingsSection<Content: View>: View {
     var footnote: String?
     var action: (() -> Void)?
     var actionTitle: String?
+    var headerTrailing: AnyView?
     @ViewBuilder var content: Content
 
     @Environment(\.colorScheme) private var colorScheme
@@ -51,6 +82,7 @@ struct SettingsSection<Content: View>: View {
         footnote: String? = nil,
         action: (() -> Void)? = nil,
         actionTitle: String? = nil,
+        headerTrailing: AnyView? = nil,
         @ViewBuilder content: () -> Content
     ) {
         self.title = title
@@ -59,6 +91,7 @@ struct SettingsSection<Content: View>: View {
         self.footnote = footnote
         self.action = action
         self.actionTitle = actionTitle
+        self.headerTrailing = headerTrailing
         self.content = content()
     }
 
@@ -88,7 +121,9 @@ struct SettingsSection<Content: View>: View {
             SectionHeader(title: title, systemImage: systemImage, detail: detail)
             Spacer(minLength: 0)
 
-            if let action, let actionTitle {
+            if let headerTrailing {
+                headerTrailing
+            } else if let action, let actionTitle {
                 Button(action: action) {
                     HStack(spacing: 2) {
                         Text(actionTitle)
@@ -110,6 +145,7 @@ struct SettingRow<Content: View>: View {
     let title: String
     var subtitle: String?
     var systemImage: String?
+    var badge: String?
     @ViewBuilder var content: Content
 
     var body: some View {
@@ -123,11 +159,17 @@ struct SettingRow<Content: View>: View {
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(.primary)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
+                HStack(spacing: 6) {
+                    Text(title)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
+
+                    if let badge {
+                        SettingsScopeBadge(text: badge)
+                    }
+                }
 
                 if let subtitle {
                     Text(subtitle)
@@ -149,11 +191,12 @@ struct ToggleSettingRow: View {
     let title: String
     var subtitle: String?
     var systemImage: String?
+    var badge: String?
     let isOn: Binding<Bool>
     var isEnabled = true
 
     var body: some View {
-        SettingRow(title: title, subtitle: subtitle, systemImage: systemImage) {
+        SettingRow(title: title, subtitle: subtitle, systemImage: systemImage, badge: badge) {
             ChipSwitch(isOn: isOn, isEnabled: isEnabled, label: title)
         }
         .disabled(!isEnabled)

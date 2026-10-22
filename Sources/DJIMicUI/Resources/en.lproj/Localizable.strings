@@ -34,6 +34,10 @@
 "rx.audioChannel.mono" = "Mono";
 "rx.audioChannel.stereo" = "Stereo";
 "rx.safetyTrack" = "Safety Track";
+"rx.safetyTrack.monoOnly" = "Only available in Mono mode.";
+"rx.group.levels" = "Levels";
+"rx.group.channel" = "Channel";
+"rx.group.noise" = "Noise";
 
 "tx.title" = "Transmitter %d:";
 "tx.voiceTone" = "Voice Tone";
@@ -53,7 +57,6 @@
 "tx.recording" = "Recording";
 "tx.format" = "Format";
 
-"rx.safetyTrack.monoOnly" = "Only available in Mono mode.";
 
 "battery.unknown" = "Unknown";
 "battery.full" = "Full";
@@ -76,6 +79,12 @@
 "more.clipping" = "Clipping Control";
 "more.clippingNote" = "Applies to the receiver and transmitters.";
 "more.recording" = "Internal Recording";
+"more.audio" = "Audio";
+"more.buttons" = "Buttons & LED";
+"more.general" = "General";
+"scope.tx" = "TX";
+"scope.rx" = "RX";
+"scope.rxTx" = "RX+TX";
 "more.vibration" = "Vibration";
 "more.vibrationNote" = "Vibrates when using the transmitter buttons.";
 "more.float32" = "32-Bit Float Recording";

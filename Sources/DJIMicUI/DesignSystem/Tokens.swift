@@ -11,7 +11,7 @@ enum Spacing {
 
 enum PanelMetrics {
     static let width: CGFloat = 400
-    static let height: CGFloat = 660
+    static let height: CGFloat = 760
     static let contentInset: CGFloat = 18
     static let cardRadius: CGFloat = 24
     static let controlHeight: CGFloat = 34
