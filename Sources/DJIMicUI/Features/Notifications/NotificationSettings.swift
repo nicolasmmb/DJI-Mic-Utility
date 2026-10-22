@@ -2,6 +2,7 @@ import Foundation
 import Observation
 
 public struct NotificationPreferences: Equatable, Sendable {
+    public var enabled: Bool
     public var receiverConnected: Bool
     public var transmitterConnected: Bool
     public var notifyOnLaunchWhenConnected: Bool
@@ -11,6 +12,7 @@ public struct NotificationPreferences: Equatable, Sendable {
     public var linkLost: Bool
 
     public init(
+        enabled: Bool = true,
         receiverConnected: Bool = true,
         transmitterConnected: Bool = true,
         notifyOnLaunchWhenConnected: Bool = false,
@@ -19,6 +21,7 @@ public struct NotificationPreferences: Equatable, Sendable {
         recordingStopped: Bool = true,
         linkLost: Bool = true
     ) {
+        self.enabled = enabled
         self.receiverConnected = receiverConnected
         self.transmitterConnected = transmitterConnected
         self.notifyOnLaunchWhenConnected = notifyOnLaunchWhenConnected
@@ -29,8 +32,8 @@ public struct NotificationPreferences: Equatable, Sendable {
     }
 
     public var anyEnabled: Bool {
-        receiverConnected || transmitterConnected || lowBattery ||
-            transmitterDisconnected || recordingStopped || linkLost
+        enabled && (receiverConnected || transmitterConnected || lowBattery ||
+            transmitterDisconnected || recordingStopped || linkLost)
     }
 }
 
@@ -39,6 +42,7 @@ public struct NotificationPreferences: Equatable, Sendable {
 public final class NotificationSettings {
     private enum Key {
         static let prefix = "com.niko.djimic.notifications."
+        static let enabled = prefix + "enabled"
         static let receiverConnected = prefix + "receiverConnected"
         static let transmitterConnected = prefix + "transmitterConnected"
         static let notifyOnLaunch = prefix + "notifyOnLaunchWhenConnected"
@@ -50,6 +54,7 @@ public final class NotificationSettings {
 
     @ObservationIgnored private let defaults: UserDefaults
 
+    public var notificationsEnabled: Bool { didSet { defaults.set(notificationsEnabled, forKey: Key.enabled) } }
     public var receiverConnected: Bool { didSet { defaults.set(receiverConnected, forKey: Key.receiverConnected) } }
     public var transmitterConnected: Bool { didSet { defaults.set(transmitterConnected, forKey: Key.transmitterConnected) } }
     public var notifyOnLaunchWhenConnected: Bool { didSet { defaults.set(notifyOnLaunchWhenConnected, forKey: Key.notifyOnLaunch) } }
@@ -60,6 +65,7 @@ public final class NotificationSettings {
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults
+        self.notificationsEnabled = defaults.object(forKey: Key.enabled) as? Bool ?? true
         self.receiverConnected = defaults.object(forKey: Key.receiverConnected) as? Bool ?? true
         self.transmitterConnected = defaults.object(forKey: Key.transmitterConnected) as? Bool ?? true
         self.notifyOnLaunchWhenConnected = defaults.object(forKey: Key.notifyOnLaunch) as? Bool ?? false
@@ -71,6 +77,7 @@ public final class NotificationSettings {
 
     public var snapshot: NotificationPreferences {
         NotificationPreferences(
+            enabled: notificationsEnabled,
             receiverConnected: receiverConnected,
             transmitterConnected: transmitterConnected,
             notifyOnLaunchWhenConnected: notifyOnLaunchWhenConnected,

@@ -336,3 +336,34 @@ private func hasLowBattery(_ alerts: [MicAlert]) -> Bool {
     )
     #expect(hasLowBattery(unplugged))
 }
+
+@Test func masterSwitchSuppressesAlerts() {
+    let engine = NotificationRuleEngine(timing: fastTiming)
+    var prefs = NotificationPreferences()
+    prefs.enabled = false
+
+    _ = engine.evaluate(snapshot: snapshot(battery: 3), preferences: prefs, now: t0)
+    let alerts = engine.evaluate(
+        snapshot: snapshot(battery: 6),
+        preferences: prefs,
+        now: t0.addingTimeInterval(1)
+    )
+
+    #expect(alerts.isEmpty)
+}
+
+@Test func masterSwitchBlocksEveryAlertKind() {
+    let prefs = NotificationPreferences(enabled: false)
+    let alerts: [MicAlert] = [
+        .receiverConnected(name: nil),
+        .transmitterConnected(unit: 1, name: nil, batteryGauge: 1, charging: false),
+        .lowBattery(unit: 1, name: nil, gauge: 6),
+        .transmitterDisconnected(unit: 1, name: nil),
+        .recordingStopped(unit: 1, name: nil),
+        .linkLost(receiverName: nil),
+    ]
+
+    for alert in alerts {
+        #expect(!prefs.allows(alert))
+    }
+}

@@ -23,82 +23,95 @@ struct NotificationPreferencesSection: View {
             systemImage: "bell.badge",
             footnote: L10n.s("notifications.subtitle")
         ) {
+            ToggleSettingRow(
+                title: L10n.s("notifications.enabled"),
+                subtitle: L10n.s("notifications.enabled.note"),
+                systemImage: "bell",
+                isOn: binding(\.notificationsEnabled),
+                isEnabled: true
+            )
+
+            Divider()
+
             permissionRow
 
             Divider()
 
-            SettingsGroupLabel(title: L10n.s("notifications.group.connection"))
+            Group {
+                SettingsGroupLabel(title: L10n.s("notifications.group.connection"))
 
-            ToggleSettingRow(
-                title: L10n.s("notifications.receiverConnected"),
-                subtitle: L10n.s("notifications.receiverConnected.note"),
-                systemImage: "cable.connector",
-                isOn: binding(\.receiverConnected),
-                isEnabled: true
-            )
+                ToggleSettingRow(
+                    title: L10n.s("notifications.receiverConnected"),
+                    subtitle: L10n.s("notifications.receiverConnected.note"),
+                    systemImage: "cable.connector",
+                    isOn: binding(\.receiverConnected),
+                    isEnabled: true
+                )
 
-            Divider()
+                Divider()
 
-            ToggleSettingRow(
-                title: L10n.s("notifications.transmitterConnected"),
-                subtitle: L10n.s("notifications.transmitterConnected.note"),
-                systemImage: "mic.fill",
-                isOn: binding(\.transmitterConnected),
-                isEnabled: true
-            )
+                ToggleSettingRow(
+                    title: L10n.s("notifications.transmitterConnected"),
+                    subtitle: L10n.s("notifications.transmitterConnected.note"),
+                    systemImage: "mic.fill",
+                    isOn: binding(\.transmitterConnected),
+                    isEnabled: true
+                )
 
-            Divider()
+                Divider()
 
-            ToggleSettingRow(
-                title: L10n.s("notifications.notifyOnLaunch"),
-                subtitle: L10n.s("notifications.notifyOnLaunch.note"),
-                systemImage: "power",
-                isOn: binding(\.notifyOnLaunchWhenConnected),
-                isEnabled: true
-            )
+                ToggleSettingRow(
+                    title: L10n.s("notifications.notifyOnLaunch"),
+                    subtitle: L10n.s("notifications.notifyOnLaunch.note"),
+                    systemImage: "power",
+                    isOn: binding(\.notifyOnLaunchWhenConnected),
+                    isEnabled: true
+                )
 
-            Divider()
+                Divider()
 
-            SettingsGroupLabel(title: L10n.s("notifications.group.alerts"))
+                SettingsGroupLabel(title: L10n.s("notifications.group.alerts"))
 
-            ToggleSettingRow(
-                title: L10n.s("notifications.lowBattery"),
-                subtitle: L10n.s("notifications.lowBattery.note"),
-                systemImage: "battery.25",
-                isOn: binding(\.lowBattery),
-                isEnabled: true
-            )
+                ToggleSettingRow(
+                    title: L10n.s("notifications.lowBattery"),
+                    subtitle: L10n.s("notifications.lowBattery.note"),
+                    systemImage: "battery.25",
+                    isOn: binding(\.lowBattery),
+                    isEnabled: true
+                )
 
-            Divider()
+                Divider()
 
-            ToggleSettingRow(
-                title: L10n.s("notifications.txDisconnected"),
-                subtitle: L10n.s("notifications.txDisconnected.note"),
-                systemImage: "antenna.radiowaves.left.and.right.slash",
-                isOn: binding(\.transmitterDisconnected),
-                isEnabled: true
-            )
+                ToggleSettingRow(
+                    title: L10n.s("notifications.txDisconnected"),
+                    subtitle: L10n.s("notifications.txDisconnected.note"),
+                    systemImage: "antenna.radiowaves.left.and.right.slash",
+                    isOn: binding(\.transmitterDisconnected),
+                    isEnabled: true
+                )
 
-            Divider()
+                Divider()
 
-            ToggleSettingRow(
-                title: L10n.s("notifications.recordingStopped"),
-                subtitle: L10n.s("notifications.recordingStopped.note"),
-                systemImage: "record.circle",
-                isOn: binding(\.recordingStopped),
-                isEnabled: true
-            )
+                ToggleSettingRow(
+                    title: L10n.s("notifications.recordingStopped"),
+                    subtitle: L10n.s("notifications.recordingStopped.note"),
+                    systemImage: "record.circle",
+                    isOn: binding(\.recordingStopped),
+                    isEnabled: true
+                )
 
-            Divider()
+                Divider()
 
-            ToggleSettingRow(
-                title: L10n.s("notifications.linkLost"),
-                subtitle: L10n.s("notifications.linkLost.note"),
-                systemImage: "cable.connector.slash",
-                isOn: binding(\.linkLost),
-                isEnabled: true
-            )
-
+                ToggleSettingRow(
+                    title: L10n.s("notifications.linkLost"),
+                    subtitle: L10n.s("notifications.linkLost.note"),
+                    systemImage: "cable.connector.slash",
+                    isOn: binding(\.linkLost),
+                    isEnabled: true
+                )
+            }
+            .disabled(!settings.notificationsEnabled)
+            .opacity(settings.notificationsEnabled ? 1 : 0.55)
         }
         .task {
             authorizationStatus = await MicNotificationCenter.shared.authorizationStatus()
@@ -165,6 +178,7 @@ struct NotificationPreferencesSection: View {
                         )
                     }
                 }
+                .disabled(!settings.notificationsEnabled)
             }
         }
     }

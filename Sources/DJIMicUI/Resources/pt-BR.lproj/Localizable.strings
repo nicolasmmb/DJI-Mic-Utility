@@ -169,3 +169,5 @@
 "notifications.group.alerts" = "Alertas";
 "notifications.permission.enabled" = "Notificações ativadas.";
 "notifications.test" = "Testar notificação";
+"notifications.enabled" = "Ativar notificações";
+"notifications.enabled.note" = "Liga ou desliga todos os avisos.";

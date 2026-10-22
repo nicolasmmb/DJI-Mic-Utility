@@ -38,7 +38,8 @@ public enum MicNotificationAction: Equatable, Sendable {
 
 public extension NotificationPreferences {
     func allows(_ alert: MicAlert) -> Bool {
-        switch alert {
+        guard enabled else { return false }
+        return switch alert {
         case .receiverConnected:
             receiverConnected
         case .transmitterConnected:

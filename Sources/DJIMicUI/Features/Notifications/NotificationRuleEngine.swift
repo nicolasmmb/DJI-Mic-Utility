@@ -145,7 +145,7 @@ public final class NotificationRuleEngine {
                 preferences: preferences,
                 now: now
             ))
-            return alerts
+            return preferences.enabled ? alerts : []
         }
 
         // Receiver/USB is down: only the link-lost alert is meaningful.
@@ -182,7 +182,7 @@ public final class NotificationRuleEngine {
             units[unit]?.recordingStopWasUserInitiated = false
         }
 
-        return alerts
+        return preferences.enabled ? alerts : []
     }
 
     private func evaluateTransmitters(

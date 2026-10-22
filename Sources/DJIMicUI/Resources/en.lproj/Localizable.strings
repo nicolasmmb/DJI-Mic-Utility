@@ -169,3 +169,5 @@
 "notifications.group.alerts" = "Alerts";
 "notifications.permission.enabled" = "Notifications enabled.";
 "notifications.test" = "Test notification";
+"notifications.enabled" = "Enable notifications";
+"notifications.enabled.note" = "Turns all alerts on or off.";
