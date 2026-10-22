@@ -1,8 +1,8 @@
 import DJIMicProtocol
 import SwiftUI
 
-/// Secondary settings page, grouped by function (matching DJI's app) with a
-/// compact scope badge on every row.
+/// Secondary settings page. Scope is the top-level hierarchy (transmitter /
+/// receiver); inside each card, settings are grouped by function.
 struct MoreSettingsContent: View {
     let model: AppModel
 
@@ -67,13 +67,10 @@ struct MoreSettingsContent: View {
         sharedCapability(.recStopLock) != nil
     }
 
-    private var supportsRecordingSection: Bool {
-        supportsFloat32 || supportsStartupRecording
-    }
-
-    private var supportsButtonsSection: Bool {
-        supportsVibration || supportsRecStopLock || supportsMicLED
-    }
+    private var hasAudioGroup: Bool { supportsLowCut }
+    private var hasRecordingGroup: Bool { supportsFloat32 || supportsStartupRecording }
+    private var hasButtonsGroup: Bool { supportsVibration || supportsRecStopLock || supportsMicLED }
+    private var hasGeneralGroup: Bool { supportsAutoOff }
 
     private var lowCutBinding: Binding<Bool> {
         model.settingBinding(
@@ -133,18 +130,10 @@ struct MoreSettingsContent: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
-            audioSection
+            transmitterSection
 
-            if supportsRecordingSection {
-                recordingSection
-            }
-
-            if supportsButtonsSection {
-                buttonsSection
-            }
-
-            if supportsAutoOff {
-                generalSection
+            if supportsClipping {
+                receiverSection
             }
 
             if !canEditTransmitterSettings {
@@ -153,143 +142,150 @@ struct MoreSettingsContent: View {
         }
     }
 
-    // MARK: - Audio
+    // MARK: - Transmitter
+
+    private var transmitterSection: some View {
+        SettingsSection(
+            title: L10n.s("more.transmitter"),
+            systemImage: "mic.fill",
+            footnote: L10n.s("more.transmitterNote")
+        ) {
+            if hasAudioGroup {
+                SettingsGroupLabel(title: L10n.s("more.audio"))
+                lowCutRow
+            }
+
+            if hasRecordingGroup {
+                if hasAudioGroup { Divider() }
+                SettingsGroupLabel(title: L10n.s("more.recording"))
+                recordingRows
+            }
+
+            if hasButtonsGroup {
+                if hasAudioGroup || hasRecordingGroup { Divider() }
+                SettingsGroupLabel(title: L10n.s("more.buttons"))
+                buttonsRows
+            }
+
+            if hasGeneralGroup {
+                if hasAudioGroup || hasRecordingGroup || hasButtonsGroup { Divider() }
+                SettingsGroupLabel(title: L10n.s("more.general"))
+                autoOffRow
+            }
+        }
+    }
+
+    private var lowCutRow: some View {
+        ToggleSettingRow(
+            title: L10n.s("more.lowCut"),
+            subtitle: L10n.s("more.lowCutNote"),
+            systemImage: "waveform.path.ecg",
+            info: L10n.s("more.lowCut.info"),
+            isOn: lowCutBinding,
+            isEnabled: canEditTransmitterSettings
+        )
+    }
 
     @ViewBuilder
-    private var audioSection: some View {
-        if supportsLowCut || supportsClipping {
-            SettingsSection(
-                title: L10n.s("more.audio"),
-                systemImage: "waveform"
-            ) {
-                if supportsLowCut {
-                    ToggleSettingRow(
-                        title: L10n.s("more.lowCut"),
-                        subtitle: L10n.s("more.lowCutNote"),
-                        systemImage: "waveform.path.ecg",
-                        badge: L10n.s("scope.tx"),
-                        isOn: lowCutBinding,
-                        isEnabled: canEditTransmitterSettings
-                    )
-                }
-
-                if supportsLowCut && supportsClipping {
-                    Divider()
-                }
-
-                if supportsClipping {
-                    ToggleSettingRow(
-                        title: L10n.s("more.clipping"),
-                        subtitle: L10n.s("more.clippingNote"),
-                        systemImage: "waveform.badge.exclamationmark",
-                        badge: L10n.s("scope.rxTx"),
-                        isOn: clippingBinding,
-                        isEnabled: canEditReceiverSettings
-                    )
-                }
-            }
-        }
-    }
-
-    // MARK: - Recording
-
-    private var recordingSection: some View {
-        SettingsSection(
-            title: L10n.s("more.recording"),
-            systemImage: "record.circle"
-        ) {
-            if supportsFloat32 {
-                ToggleSettingRow(
-                    title: L10n.s("more.float32"),
-                    subtitle: L10n.s("more.float32Note"),
-                    systemImage: "waveform",
-                    badge: L10n.s("scope.tx"),
-                    isOn: float32Binding,
-                    isEnabled: canEditTransmitterSettings
-                )
-            }
-
-            if supportsFloat32 && supportsStartupRecording {
-                Divider()
-            }
-
-            if supportsStartupRecording {
-                ToggleSettingRow(
-                    title: L10n.s("more.startupRecording"),
-                    subtitle: L10n.s("more.startupRecordingNote"),
-                    systemImage: "play.circle",
-                    badge: L10n.s("scope.tx"),
-                    isOn: startupRecordingBinding,
-                    isEnabled: canEditTransmitterSettings
-                )
-            }
-        }
-    }
-
-    // MARK: - Buttons
-
-    private var buttonsSection: some View {
-        SettingsSection(
-            title: L10n.s("more.buttons"),
-            systemImage: "hand.tap"
-        ) {
-            if supportsVibration {
-                ToggleSettingRow(
-                    title: L10n.s("more.vibration"),
-                    subtitle: L10n.s("more.vibrationNote"),
-                    systemImage: "iphone.radiowaves.left.and.right",
-                    badge: L10n.s("scope.tx"),
-                    isOn: vibrationBinding,
-                    isEnabled: canEditTransmitterSettings
-                )
-            }
-
-            if supportsVibration && supportsRecStopLock {
-                Divider()
-            }
-
-            if supportsRecStopLock {
-                ToggleSettingRow(
-                    title: L10n.s("more.recStopLock"),
-                    subtitle: L10n.s("more.recStopLockNote"),
-                    systemImage: "lock.circle",
-                    badge: L10n.s("scope.tx"),
-                    isOn: recStopLockBinding,
-                    isEnabled: canEditTransmitterSettings
-                )
-            }
-
-            if (supportsVibration || supportsRecStopLock) && supportsMicLED {
-                Divider()
-            }
-
-            if supportsMicLED {
-                ToggleSettingRow(
-                    title: L10n.s("more.micLED"),
-                    subtitle: L10n.s("more.micLEDNote"),
-                    systemImage: "light.max",
-                    badge: L10n.s("scope.tx"),
-                    isOn: micLEDBinding,
-                    isEnabled: canEditMicLED
-                )
-            }
-        }
-    }
-
-    // MARK: - General
-
-    private var generalSection: some View {
-        SettingsSection(
-            title: L10n.s("more.general"),
-            systemImage: "gearshape"
-        ) {
+    private var recordingRows: some View {
+        if supportsFloat32 {
             ToggleSettingRow(
-                title: L10n.s("more.autoOff"),
-                subtitle: L10n.s("more.autoOffNote"),
-                systemImage: "moon.zzz",
-                badge: L10n.s("scope.tx"),
-                isOn: autoOffBinding,
+                title: L10n.s("more.float32"),
+                subtitle: L10n.s("more.float32Note"),
+                systemImage: "waveform",
+                info: L10n.s("more.float32.info"),
+                isOn: float32Binding,
                 isEnabled: canEditTransmitterSettings
+            )
+        }
+
+        if supportsFloat32 && supportsStartupRecording {
+            Divider()
+        }
+
+        if supportsStartupRecording {
+            ToggleSettingRow(
+                title: L10n.s("more.startupRecording"),
+                subtitle: L10n.s("more.startupRecordingNote"),
+                systemImage: "play.circle",
+                info: L10n.s("more.startupRecording.info"),
+                isOn: startupRecordingBinding,
+                isEnabled: canEditTransmitterSettings
+            )
+        }
+    }
+
+    @ViewBuilder
+    private var buttonsRows: some View {
+        if supportsVibration {
+            ToggleSettingRow(
+                title: L10n.s("more.vibration"),
+                subtitle: L10n.s("more.vibrationNote"),
+                systemImage: "iphone.radiowaves.left.and.right",
+                info: L10n.s("more.vibration.info"),
+                isOn: vibrationBinding,
+                isEnabled: canEditTransmitterSettings
+            )
+        }
+
+        if supportsVibration && supportsRecStopLock {
+            Divider()
+        }
+
+        if supportsRecStopLock {
+            ToggleSettingRow(
+                title: L10n.s("more.recStopLock"),
+                subtitle: L10n.s("more.recStopLockNote"),
+                systemImage: "lock.circle",
+                info: L10n.s("more.recStopLock.info"),
+                isOn: recStopLockBinding,
+                isEnabled: canEditTransmitterSettings
+            )
+        }
+
+        if (supportsVibration || supportsRecStopLock) && supportsMicLED {
+            Divider()
+        }
+
+        if supportsMicLED {
+            ToggleSettingRow(
+                title: L10n.s("more.micLED"),
+                subtitle: L10n.s("more.micLEDNote"),
+                systemImage: "light.max",
+                info: L10n.s("more.micLED.info"),
+                isOn: micLEDBinding,
+                isEnabled: canEditMicLED
+            )
+        }
+    }
+
+    private var autoOffRow: some View {
+        ToggleSettingRow(
+            title: L10n.s("more.autoOff"),
+            subtitle: L10n.s("more.autoOffNote"),
+            systemImage: "moon.zzz",
+            info: L10n.s("more.autoOff.info"),
+            isOn: autoOffBinding,
+            isEnabled: canEditTransmitterSettings
+        )
+    }
+
+    // MARK: - Receiver
+
+    private var receiverSection: some View {
+        SettingsSection(
+            title: L10n.s("more.receiver"),
+            systemImage: "dot.radiowaves.left.and.right"
+        ) {
+            SettingsGroupLabel(title: L10n.s("more.audio"))
+
+            ToggleSettingRow(
+                title: L10n.s("more.clipping"),
+                subtitle: L10n.s("more.clippingNote"),
+                systemImage: "waveform.badge.exclamationmark",
+                info: L10n.s("more.clipping.info"),
+                isOn: clippingBinding,
+                isEnabled: canEditReceiverSettings
             )
         }
     }

@@ -13,23 +13,6 @@ struct SettingsGroupLabel: View {
     }
 }
 
-struct SettingsScopeBadge: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .font(.system(size: 8.5, weight: .bold, design: .rounded))
-            .tracking(0.4)
-            .foregroundStyle(.secondary)
-            .padding(.horizontal, 6)
-            .frame(height: 15)
-            .background(.primary.opacity(0.06), in: Capsule())
-            .overlay(Capsule().strokeBorder(.primary.opacity(0.12), lineWidth: 0.7))
-            .fixedSize()
-            .accessibilityLabel(text)
-    }
-}
-
 struct SectionHeader: View {
     let title: String
     var systemImage: String?
@@ -145,7 +128,7 @@ struct SettingRow<Content: View>: View {
     let title: String
     var subtitle: String?
     var systemImage: String?
-    var badge: String?
+    var info: String?
     @ViewBuilder var content: Content
 
     var body: some View {
@@ -159,15 +142,15 @@ struct SettingRow<Content: View>: View {
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
+                HStack(spacing: 5) {
                     Text(title)
                         .font(.system(size: 14, weight: .medium))
                         .foregroundStyle(.primary)
                         .lineLimit(1)
                         .minimumScaleFactor(0.85)
 
-                    if let badge {
-                        SettingsScopeBadge(text: badge)
+                    if let info {
+                        SettingInfoButton(title: title, message: info)
                     }
                 }
 
@@ -186,20 +169,63 @@ struct SettingRow<Content: View>: View {
     }
 }
 
+struct SettingInfoButton: View {
+    let title: String
+    let message: String
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isPresented = false
+    @State private var isHovering = false
+
+    var body: some View {
+        Button {
+            isPresented.toggle()
+        } label: {
+            Image(systemName: "info.circle")
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(isHovering ? Color.primary : Color.secondary)
+                .scaleEffect(isHovering && !reduceMotion ? 1.08 : 1)
+                .frame(width: 22, height: 22)
+                .contentShape(Circle())
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.14)) {
+                isHovering = hovering
+            }
+        }
+        .popover(isPresented: $isPresented, arrowEdge: .bottom) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(title)
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+
+                Text(message)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .padding(14)
+            .frame(width: 260, alignment: .leading)
+        }
+        .accessibilityLabel(L10n.format("info.accessibility", title))
+        .help(L10n.s("info.help"))
+    }
+}
+
 /// Standard switch row used by the secondary settings pages.
 struct ToggleSettingRow: View {
     let title: String
     var subtitle: String?
     var systemImage: String?
-    var badge: String?
+    var info: String?
     let isOn: Binding<Bool>
     var isEnabled = true
 
     var body: some View {
-        SettingRow(title: title, subtitle: subtitle, systemImage: systemImage, badge: badge) {
+        SettingRow(title: title, subtitle: subtitle, systemImage: systemImage, info: info) {
             ChipSwitch(isOn: isOn, isEnabled: isEnabled, label: title)
+                .frame(width: 52, alignment: .trailing)
         }
-        .disabled(!isEnabled)
     }
 }
 

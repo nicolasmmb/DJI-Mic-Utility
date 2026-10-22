@@ -77,14 +77,11 @@
 "more.autoOffNote" = "Desliga o transmissor quando ocioso.";
 "more.receiver" = "Receptor";
 "more.clipping" = "Controle de clipping";
-"more.clippingNote" = "Aplica-se ao receptor e aos transmissores.";
+"more.clippingNote" = "Também afeta os transmissores.";
 "more.recording" = "Gravação interna";
 "more.audio" = "Áudio";
 "more.buttons" = "Botões e LED";
 "more.general" = "Geral";
-"scope.tx" = "TX";
-"scope.rx" = "RX";
-"scope.rxTx" = "RX+TX";
 "more.vibration" = "Vibração";
 "more.vibrationNote" = "Vibra ao usar os botões do transmissor.";
 "more.float32" = "Gravação 32-bit float";
@@ -118,3 +115,14 @@
 "error.disconnected" = "O receptor está desconectado.";
 "error.transport" = "Erro USB: %@";
 "error.unknown" = "%@";
+
+"info.accessibility" = "Mais informações sobre %@";
+"info.help" = "Mais informações";
+"more.lowCut.info" = "Remove ruído de baixa frequência e vento de todos os transmissores conectados.";
+"more.clipping.info" = "Limita o nível automaticamente para evitar clipping. Afeta o receptor e os transmissores.";
+"more.float32.info" = "Grava com faixa dinâmica maior e mais precisão. Reduz o tempo de gravação disponível.";
+"more.startupRecording.info" = "Inicia a gravação interna automaticamente quando o transmissor liga.";
+"more.vibration.info" = "Fornece feedback vibratório ao usar os botões do transmissor.";
+"more.recStopLock.info" = "Permite iniciar a gravação interna pelo botão do transmissor, mas impede parar pelo botão.";
+"more.micLED.info" = "Acende o LED do transmissor para mostrar o status.";
+"more.autoOff.info" = "Desliga o transmissor após 15 minutos sem conexão, gravação ou operação.";

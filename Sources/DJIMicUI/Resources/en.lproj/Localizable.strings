@@ -77,14 +77,11 @@
 "more.autoOffNote" = "Turns the transmitter off when idle.";
 "more.receiver" = "Receiver";
 "more.clipping" = "Clipping Control";
-"more.clippingNote" = "Applies to the receiver and transmitters.";
+"more.clippingNote" = "Also affects the transmitters.";
 "more.recording" = "Internal Recording";
 "more.audio" = "Audio";
 "more.buttons" = "Buttons & LED";
 "more.general" = "General";
-"scope.tx" = "TX";
-"scope.rx" = "RX";
-"scope.rxTx" = "RX+TX";
 "more.vibration" = "Vibration";
 "more.vibrationNote" = "Vibrates when using the transmitter buttons.";
 "more.float32" = "32-Bit Float Recording";
@@ -118,3 +115,14 @@
 "error.disconnected" = "The receiver is disconnected.";
 "error.transport" = "USB error: %@";
 "error.unknown" = "%@";
+
+"info.accessibility" = "More information about %@";
+"info.help" = "More information";
+"more.lowCut.info" = "Removes low-frequency rumble and wind noise from all connected transmitters.";
+"more.clipping.info" = "Automatically limits the level to avoid clipping. It affects the receiver and the transmitters.";
+"more.float32.info" = "Records with wider dynamic range and higher precision. It reduces the available recording time.";
+"more.startupRecording.info" = "Starts internal recording automatically when the transmitter powers on.";
+"more.vibration.info" = "Gives vibration feedback when the transmitter buttons are used.";
+"more.recStopLock.info" = "Allows starting internal recording with the transmitter button, but prevents stopping it from the button.";
+"more.micLED.info" = "Lights the transmitter LED to show its status.";
+"more.autoOff.info" = "Powers off the transmitter after 15 minutes without connection, recording, or operation.";
