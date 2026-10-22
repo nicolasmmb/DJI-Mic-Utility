@@ -14,5 +14,4 @@ enum PanelMetrics {
     static let height: CGFloat = 540
     static let contentInset: CGFloat = 16
     static let cardRadius: CGFloat = 10
-    static let footerHeight: CGFloat = 40
 }

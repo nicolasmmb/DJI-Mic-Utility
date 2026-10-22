@@ -6,6 +6,8 @@ struct DeviceHeaderView: View {
     /// Opens the device-wide settings page. Kept at the panel level so the
     /// entry point never looks like a per-transmitter action.
     var onMore: (() -> Void)?
+    var onDiagnostics: (() -> Void)?
+    var onQuit: (() -> Void)?
 
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.sm) {
@@ -37,12 +39,30 @@ struct DeviceHeaderView: View {
 
             Spacer(minLength: 0)
 
-            if let onMore {
-                HeaderIconButton(
-                    systemImage: "slider.horizontal.3",
-                    title: L10n.s("more.title"),
-                    action: onMore
-                )
+            HStack(spacing: Spacing.xs) {
+                if let onMore {
+                    HeaderIconButton(
+                        systemImage: "slider.horizontal.3",
+                        title: L10n.s("more.title"),
+                        action: onMore
+                    )
+                }
+
+                if let onDiagnostics {
+                    HeaderIconButton(
+                        systemImage: "waveform.path.ecg",
+                        title: L10n.s("menu.diagnostics"),
+                        action: onDiagnostics
+                    )
+                }
+
+                if let onQuit {
+                    HeaderIconButton(
+                        systemImage: "power",
+                        title: L10n.s("menu.quit"),
+                        action: onQuit
+                    )
+                }
             }
         }
         .padding(.horizontal, Spacing.md)

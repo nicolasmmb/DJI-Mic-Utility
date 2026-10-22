@@ -81,34 +81,3 @@ struct HeaderIconButton: View {
         .accessibilityLabel(title)
     }
 }
-
-struct PanelFooter: View {
-    let onDiagnostics: () -> Void
-    let onQuit: () -> Void
-
-    var body: some View {
-        HStack(spacing: Spacing.md) {
-            Button(action: onDiagnostics) {
-                Label(L10n.s("menu.diagnostics"), systemImage: "waveform.path.ecg")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .buttonStyle(.borderless)
-
-            Spacer(minLength: 0)
-
-            Button(action: onQuit) {
-                Label(L10n.s("menu.quit"), systemImage: "power")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .buttonStyle(.borderless)
-        }
-        .padding(.horizontal, PanelMetrics.contentInset)
-        .frame(height: PanelMetrics.footerHeight)
-        .background(.regularMaterial)
-        .overlay(alignment: .top) {
-            Divider()
-        }
-    }
-}

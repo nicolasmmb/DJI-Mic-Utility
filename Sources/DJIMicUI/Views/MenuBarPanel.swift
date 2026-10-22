@@ -23,10 +23,6 @@ public struct MenuBarPanel: View {
             Divider()
             errorBanner
             pageContent
-            PanelFooter(
-                onDiagnostics: openDiagnostics,
-                onQuit: { NSApp.terminate(nil) }
-            )
         }
         .frame(width: PanelMetrics.width, height: PanelMetrics.height)
         .background(.regularMaterial)
@@ -44,7 +40,12 @@ public struct MenuBarPanel: View {
         Group {
             switch route {
             case .main:
-                DeviceHeaderView(model: model, onMore: { navigate(to: .moreSettings) })
+                DeviceHeaderView(
+                    model: model,
+                    onMore: { navigate(to: .moreSettings) },
+                    onDiagnostics: openDiagnostics,
+                    onQuit: quit
+                )
             case .moreSettings:
                 moreSettingsHeader
             }
@@ -69,8 +70,26 @@ public struct MenuBarPanel: View {
             }
 
             Spacer(minLength: 0)
+
+            utilityActions
         }
         .padding(.horizontal, PanelMetrics.contentInset)
+    }
+
+    private var utilityActions: some View {
+        HStack(spacing: Spacing.xs) {
+            HeaderIconButton(
+                systemImage: "waveform.path.ecg",
+                title: L10n.s("menu.diagnostics"),
+                action: openDiagnostics
+            )
+
+            HeaderIconButton(
+                systemImage: "power",
+                title: L10n.s("menu.quit"),
+                action: quit
+            )
+        }
     }
 
     // MARK: - Error banner
@@ -175,6 +194,10 @@ public struct MenuBarPanel: View {
     private func openDiagnostics() {
         openWindow(id: "diagnostics")
         NSApp.activate()
+    }
+
+    private func quit() {
+        NSApp.terminate(nil)
     }
 
     private func navigate(to destination: PanelRoute) {
