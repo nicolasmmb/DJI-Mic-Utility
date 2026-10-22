@@ -32,7 +32,7 @@
 "rx.audioChannel.stereo" = "Estéreo";
 "rx.safetyTrack" = "Faixa de segurança";
 
-"tx.title" = "Transmissor %d";
+"tx.title" = "Transmissor %d:";
 "tx.voiceTone" = "Timbre da voz";
 "tx.voiceTone.regular" = "Regular";
 "tx.voiceTone.rich" = "Encorpado";

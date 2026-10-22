@@ -20,9 +20,14 @@ struct TransmitterSectionView: View {
         )
     }
 
+    private var transmitterName: String? {
+        model.snapshot.transmitterIdentities[transmitter.unit]?.productName
+    }
+
     var body: some View {
         SettingsSection(
-            title: L10n.format("tx.title", transmitter.unit)
+            title: L10n.format("tx.title", transmitter.unit),
+            detail: transmitterName
         ) {
             SettingRow(title: L10n.s("tx.voiceTone")) {
                 Picker("", selection: voiceToneBinding) {
@@ -63,10 +68,9 @@ struct TransmitterSectionView: View {
                 systemImage: isFinding ? "light.beacon.max.fill" : "light.beacon.max"
             )
             .font(.caption.weight(.medium))
-            .foregroundStyle(.secondary)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.borderless)
+        .buttonStyle(.bordered)
+        .controlSize(.small)
         .disabled(!isEditable || model.findingUnit != nil)
         .accessibilityLabel(L10n.s("tx.find"))
         .accessibilityValue(isFinding ? L10n.s("tx.find.finding") : L10n.s("tx.find"))

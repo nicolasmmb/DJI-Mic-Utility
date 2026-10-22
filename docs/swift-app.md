@@ -67,6 +67,9 @@ assinatura ad-hoc. O binário fica em `Release/DJIMic.app`.
   ajustes são globais (broadcast) e não a configuração do TX1.
 - Cada linha tem ícone e uma legenda curta; o cabeçalho da página mostra
   "Aplica-se a todos os dispositivos" e não exibe a bateria de um TX.
+- O header principal é do app ("Mic Control"), não de um microfone: mostra
+  conexão e firmware do receptor, sem modelo nem bateria de TX — a bateria
+  fica em cada card de transmissor.
 - Medidor de nível com gradiente e animação curta; bateria com troca de
   símbolo.
 - Otimistic update: o controle responde imediatamente e o status do

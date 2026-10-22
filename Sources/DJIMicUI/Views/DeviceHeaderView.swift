@@ -7,10 +7,6 @@ struct DeviceHeaderView: View {
     /// entry point never looks like a per-transmitter action.
     var onMore: (() -> Void)?
 
-    private var primaryTransmitter: TransmitterState? {
-        model.snapshot.sortedTransmitters.first
-    }
-
     var body: some View {
         HStack(alignment: .top, spacing: Spacing.sm) {
             Image(systemName: "mic.fill")
@@ -20,8 +16,11 @@ struct DeviceHeaderView: View {
                 .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
                 .accessibilityHidden(true)
 
+            // The header is app-level, not per-device: it must not show a
+            // transmitter's model or battery, since a kit can have two
+            // transmitters (possibly different models).
             VStack(alignment: .leading, spacing: 3) {
-                Text(model.snapshot.primaryIdentity?.productName ?? L10n.s("menu.noDevice"))
+                Text(L10n.s("app.name"))
                     .font(.headline)
                     .lineLimit(1)
 
@@ -38,21 +37,17 @@ struct DeviceHeaderView: View {
 
             Spacer(minLength: 0)
 
-            HStack(spacing: Spacing.xs) {
-                BatteryView(transmitter: primaryTransmitter)
-
-                if let onMore {
-                    Button(action: onMore) {
-                        Image(systemName: "slider.horizontal.3")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundStyle(.secondary)
-                            .frame(width: 26, height: 26)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.borderless)
-                    .help(L10n.s("more.title"))
-                    .accessibilityLabel(L10n.s("more.title"))
+            if let onMore {
+                Button(action: onMore) {
+                    Image(systemName: "slider.horizontal.3")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundStyle(.secondary)
+                        .frame(width: 26, height: 26)
+                        .contentShape(Rectangle())
                 }
+                .buttonStyle(.borderless)
+                .help(L10n.s("more.title"))
+                .accessibilityLabel(L10n.s("more.title"))
             }
         }
         .padding(.horizontal, Spacing.md)

@@ -3,18 +3,34 @@ import SwiftUI
 struct SectionHeader: View {
     let title: String
     var systemImage: String?
+    /// Secondary text shown next to the title, such as a model name.
+    var detail: String?
 
     var body: some View {
         HStack(spacing: 5) {
             if let systemImage {
                 Image(systemName: systemImage)
                     .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.secondary)
             }
 
+            // With a detail (such as the model name), the detail carries the
+            // emphasis and the label stays quiet. Without one, the title is
+            // the only information, so it keeps the emphasis.
             Text(title)
-                .font(.subheadline.weight(.semibold))
+                .font(.subheadline.weight(detail == nil ? .semibold : .regular))
+                .foregroundStyle(detail == nil ? .primary : .secondary)
+                .lineLimit(1)
+                .layoutPriority(1)
+
+            if let detail {
+                Text(detail)
+                    .font(.subheadline.weight(.bold))
+                    .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
         }
-        .foregroundStyle(.secondary)
         .padding(.leading, 2)
     }
 }
@@ -22,6 +38,7 @@ struct SectionHeader: View {
 struct SettingsSection<Content: View>: View {
     let title: String
     var systemImage: String?
+    var detail: String?
     var footnote: String?
     var action: (() -> Void)?
     var actionTitle: String?
@@ -30,6 +47,7 @@ struct SettingsSection<Content: View>: View {
     init(
         title: String,
         systemImage: String? = nil,
+        detail: String? = nil,
         footnote: String? = nil,
         action: (() -> Void)? = nil,
         actionTitle: String? = nil,
@@ -37,6 +55,7 @@ struct SettingsSection<Content: View>: View {
     ) {
         self.title = title
         self.systemImage = systemImage
+        self.detail = detail
         self.footnote = footnote
         self.action = action
         self.actionTitle = actionTitle
@@ -68,7 +87,7 @@ struct SettingsSection<Content: View>: View {
 
     private var header: some View {
         HStack(spacing: Spacing.xs) {
-            SectionHeader(title: title, systemImage: systemImage)
+            SectionHeader(title: title, systemImage: systemImage, detail: detail)
             Spacer(minLength: 0)
 
             if let action, let actionTitle {
