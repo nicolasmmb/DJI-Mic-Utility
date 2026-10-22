@@ -69,6 +69,42 @@ SETTINGS = {
         "help": "noise cancellation on/off (on/off)",
         "convert": _on_off,
     },
+    "mute": {
+        "command": 0x0009,
+        "target": ADDRESS_TX1,
+        "help": "mute transmitter; use --tx 1 or 2 (on/off)",
+        "convert": _on_off,
+    },
+    "rec": {
+        "command": 0x0002,
+        "target": ADDRESS_TX1,
+        "help": "start/stop internal recording; use --tx 1 or 2 (on/off)",
+        "convert": _on_off,
+    },
+    "vibration": {
+        "command": 0x0004,
+        "target": ADDRESS_ALL_TX,
+        "help": "transmitter vibration feedback on/off (broadcast)",
+        "convert": _on_off,
+    },
+    "float32": {
+        "command": 0x000C,
+        "target": ADDRESS_ALL_TX,
+        "help": "32-bit float internal recording on/off (broadcast)",
+        "convert": _on_off,
+    },
+    "rec-stop-lock": {
+        "command": 0x000B,
+        "target": ADDRESS_ALL_TX,
+        "help": "lock stopping internal recording from the TX button (broadcast)",
+        "convert": _on_off,
+    },
+    "startup-auto-recording": {
+        "command": 0x002E,
+        "target": ADDRESS_ALL_TX,
+        "help": "start internal recording on TX power-up (broadcast)",
+        "convert": _on_off,
+    },
     "noise-cancel-mode": {
         "command": 0x0037,
         "target": ADDRESS_ALL_TX,

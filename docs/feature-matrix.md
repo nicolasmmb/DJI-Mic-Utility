@@ -44,6 +44,32 @@ físico também foi observado (LED).
 - Os ajustes alterados durante os testes foram revertidos. O estado atual do
   kit pode ter sido mudado no app oficial entre uma sessão e outra.
 
+## DJI Mic 2 (TX 04.05.x)
+
+Testes feitos em 2026-10-22 com o mesmo RX (fw `02.03.17.00`) e dois TXs
+DJI Mic 2. ACK + status foram confirmados; os valores foram restaurados.
+
+| Recurso | Comando | Target | Escopo | ACK | Status |
+|---|---|---|---|---|---|
+| Mute | `0x0009` | `0x0001` / `0x0002` | por TX | `0x00` | slot `+6` bit `0x04` |
+| REC start/stop | `0x0002` | `0x0001` / `0x0002` | por TX | `0x00` | slot `+9` bit `0x10` |
+| Vibração | `0x0004` | `0xffff` | broadcast | `0x00` | slot `+9` bit `0x01` |
+| 32-bit float | `0x000c` | `0xffff` | broadcast | `0x00` | slot `+9` bit `0x08`; tempo 11.2h ↔ 15.0h |
+| REC Stop Lock | `0x000b` | `0xffff` | broadcast | `0x00` | slot `+11` bit `0x20` |
+| Startup Auto Recording | `0x002e` | `0xffff` | broadcast | `0x00` | slot `+8` bit `0x80` |
+| Tempo total/restante | — | — | leitura | — | slot `+14`/`+16`, uint16 LE ÷10 |
+
+Observações:
+
+- `0x0002` e `0x0009` honram o target por unidade; os demais ajustes de TX
+  testados agem como broadcast mesmo com target `0x0001`.
+- `0x0038`/`0x0037` (NC) continuam rejeitados neste RX, inclusive com target
+  TX1. A limitação parece ser do receptor.
+- `0x0029` (voice tone) deu ACK mas não mudou o status no Mic 2.
+- `0x000a` com target por unidade afeta os dois TXs no Mic 2.
+- `0x0039` com target TX deu ACK, mas o byte `+13` não mudou; não validado.
+- O serial do TX vem vazio no identity; o app oficial também mostra `—`.
+
 ## Ainda não validado
 
 - Mic LED com target por TX (`0x000a` + `0x0001`/`0x0002`), usado pelo

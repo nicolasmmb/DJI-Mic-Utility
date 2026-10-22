@@ -42,6 +42,12 @@ uv run python tools/poc/dji_probe.py set voice-tone bright --tx 1
 uv run python tools/poc/dji_probe.py set clipping-control on
 uv run python tools/poc/dji_probe.py set auto-off-tx off
 uv run python tools/poc/dji_probe.py set auto-off off
+uv run python tools/poc/dji_probe.py set mute on --tx 1
+uv run python tools/poc/dji_probe.py set rec on --tx 1
+uv run python tools/poc/dji_probe.py set vibration on
+uv run python tools/poc/dji_probe.py set float32 on
+uv run python tools/poc/dji_probe.py set rec-stop-lock on
+uv run python tools/poc/dji_probe.py set startup-auto-recording on
 
 # Sem enviar
 uv run python tools/poc/dji_probe.py set gain 6 --dry-run
@@ -70,6 +76,14 @@ Ver `docs/feature-matrix.md`. Resumo: gain, monitoring gain, safety track,
 mono/stereo, low cut, LEDs, voice tone, clipping control, auto-off do TX/RX e
 leitura de bateria do TX funcionam; NC é somente leitura neste kit (chave
 física O/L/H).
+
+No DJI Mic 2 também foram validados `mute` (`0x0009`, por TX), `rec`
+(`0x0002`, por TX), `vibration` (`0x0004`), `float32` (`0x000C`),
+`rec-stop-lock` (`0x000B`) e `startup-auto-recording` (`0x002E`). O `status`
+expõe `muted`, `recording`, `float32_recording`, `vibration`, `rec_stop_lock`,
+`startup_auto_recording`, `recording_time_total` e
+`recording_time_remaining`. Detalhes em `docs/dji-mic-2-discovery-report.md`.
+
 
 A bateria do TX aparece no `status` como `battery_gauge` (1 = cheio,
 7 = vazio), `battery_full`, `battery_low` e `charging`. O receptor USB não tem

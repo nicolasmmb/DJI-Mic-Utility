@@ -7,6 +7,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "tools" / "poc"))
 
 from dji_protocol import (  # noqa: E402
+    ADDRESS_ALL_TX,
+    ADDRESS_TX1,
     StreamParser,
     build_command,
     crc8,
@@ -95,6 +97,14 @@ class DecodingTests(unittest.TestCase):
         self.assertEqual(tx["battery_gauge"], 1)
         self.assertTrue(tx["battery_full"])
         self.assertFalse(tx["charging"])
+        self.assertFalse(tx["muted"])
+        self.assertFalse(tx["recording"])
+        self.assertTrue(tx["float32_recording"])
+        self.assertTrue(tx["vibration"])
+        self.assertTrue(tx["rec_stop_lock"])
+        self.assertFalse(tx["startup_auto_recording"])
+        self.assertEqual(tx["recording_time_total"], 0.0)
+        self.assertEqual(tx["recording_time_remaining"], 0.0)
 
     def test_identity(self):
         info = parse_frame(IDENTITY_RX_TX1)
@@ -114,6 +124,27 @@ class DecodingTests(unittest.TestCase):
         self.assertTrue(accepted["accepted"])
         rejected = parse_frame(make_ack(0x1235, 0xFF))
         self.assertFalse(rejected["accepted"])
+
+
+class DiscoveryCommandTests(unittest.TestCase):
+    def test_new_settings_are_wired(self):
+        from dji_probe import SETTINGS
+
+        expected = {
+            "mute": (0x0009, ADDRESS_TX1),
+            "rec": (0x0002, ADDRESS_TX1),
+            "vibration": (0x0004, ADDRESS_ALL_TX),
+            "float32": (0x000C, ADDRESS_ALL_TX),
+            "rec-stop-lock": (0x000B, ADDRESS_ALL_TX),
+            "startup-auto-recording": (0x002E, ADDRESS_ALL_TX),
+        }
+
+        for name, (command, target) in expected.items():
+            setting = SETTINGS[name]
+            self.assertEqual(setting["command"], command)
+            self.assertEqual(setting["target"], target)
+            self.assertEqual(setting["convert"]("on"), 1)
+            self.assertEqual(setting["convert"]("off"), 0)
 
 
 if __name__ == "__main__":

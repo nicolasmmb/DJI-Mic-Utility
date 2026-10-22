@@ -179,6 +179,10 @@ def _u8(data: bytes, offset: int) -> int:
     return data[offset]
 
 
+def _u16le(data: bytes, offset: int) -> int:
+    return struct.unpack_from("<H", data, offset)[0]
+
+
 def _ascii(data: bytes, offset: int, size: int) -> str:
     chunk = data[offset : offset + size]
     return chunk.decode("ascii", errors="replace").rstrip("\x00 ")
@@ -318,10 +322,18 @@ def _parse_status(payload: bytes) -> Push:
             "noise_cancel_via_button": bool(payload[offset + 6] & 0x80),
             "low_cut": bool(payload[offset + 9] & 0x20),
             "leds_off": bool(payload[offset + 6] & 0x02),
+            "muted": bool(payload[offset + 6] & 0x04),
             "auto_off": bool(payload[offset + 6] & 0x10),
             "auto_off_timer_active": bool(payload[offset + 6] & 0x08),
             "clipping_control": bool(payload[offset + 8] & 0x04),
+            "startup_auto_recording": bool(payload[offset + 8] & 0x80),
             "voice_tone": tone,
+            "vibration": bool(payload[offset + 9] & 0x01),
+            "float32_recording": bool(payload[offset + 9] & 0x08),
+            "recording": bool(payload[offset + 9] & 0x10),
+            "rec_stop_lock": bool(payload[offset + 11] & 0x20),
+            "recording_time_total": _u16le(payload, offset + 14) / 10,
+            "recording_time_remaining": _u16le(payload, offset + 16) / 10,
             "charging": bool(payload[offset + 7] & 0x02),
             # 1 = full, 7 = empty; 0 is believed unreachable.
             "battery_gauge": gauge,
@@ -371,6 +383,10 @@ def summarize(packet: bytes) -> str:
                     f"TX{unit}[nc={tx.get('noise_cancel')}/{tx.get('voice_tone')},"
                     f"strong={tx.get('noise_cancel_strong')},"
                     f"lowcut={tx.get('low_cut')},leds_off={tx.get('leds_off')},"
+                    f"mute={tx.get('muted')},rec={tx.get('recording')},"
+                    f"float32={tx.get('float32_recording')},vib={tx.get('vibration')},"
+                    f"time={tx.get('recording_time_total')}/"
+                    f"{tx.get('recording_time_remaining')}h,"
                     f"auto_off={tx.get('auto_off')},level={tx.get('input_level', '-')},"
                     f"bat={tx.get('battery_gauge')}]"
                 )
