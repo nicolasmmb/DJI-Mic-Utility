@@ -1,17 +1,18 @@
 import SwiftUI
 
-/// Compact segmented control with a sliding selection pill. Replaces the
-/// native segmented picker so the control matches the panel's chip language
-/// and animates its selection.
-struct GainSelector: View {
-    @Binding var selection: Int
+/// Compact segmented control with a sliding selection pill. Replaces native
+/// segmented pickers so the controls match the panel's chip language and
+/// animate their selection.
+struct SegmentedChipSelector<Value: Hashable>: View {
+    @Binding var selection: Value
+    let values: [Value]
     var isEnabled = true
-
-    private let values = [-12, -6, 0, 6, 12]
+    var width: CGFloat = 210
+    let label: (Value) -> String
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Namespace private var selectionNamespace
-    @State private var hoveredValue: Int?
+    @State private var hoveredValue: Value?
 
     var body: some View {
         HStack(spacing: 0) {
@@ -20,7 +21,7 @@ struct GainSelector: View {
             }
         }
         .padding(2)
-        .frame(width: 210, height: 24)
+        .frame(width: width, height: 24)
         .background(.secondary.opacity(0.10), in: Capsule())
         .overlay(Capsule().strokeBorder(.secondary.opacity(0.18), lineWidth: 1))
         .animation(
@@ -31,23 +32,25 @@ struct GainSelector: View {
         .disabled(!isEnabled)
     }
 
-    private func segment(_ value: Int) -> some View {
+    private func segment(_ value: Value) -> some View {
         let isSelected = selection == value
         let isHovered = hoveredValue == value
 
         return Button {
             selection = value
         } label: {
-            Text(label(for: value))
+            Text(label(value))
                 .font(.caption.weight(.semibold))
                 .monospacedDigit()
                 .foregroundStyle(isSelected || isHovered ? Color.primary : Color.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .background {
                     if isSelected {
                         Capsule()
                             .fill(.secondary.opacity(0.22))
-                            .matchedGeometryEffect(id: "gainSelection", in: selectionNamespace)
+                            .matchedGeometryEffect(id: "selection", in: selectionNamespace)
                     } else if isHovered && isEnabled {
                         Capsule()
                             .fill(.secondary.opacity(0.08))
@@ -63,15 +66,7 @@ struct GainSelector: View {
                 hoveredValue = nil
             }
         }
-        .accessibilityLabel(label(for: value))
+        .accessibilityLabel(label(value))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-    }
-
-    private func label(for value: Int) -> String {
-        switch value {
-        case 0: "0"
-        case let positive where positive > 0: "+\(positive)"
-        default: "\(value)"
-        }
     }
 }

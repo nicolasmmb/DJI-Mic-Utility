@@ -42,7 +42,12 @@ struct ReceiverSectionView: View {
         noiseReductionRow(receiver)
 
         SettingRow(title: L10n.s("rx.gain")) {
-            GainSelector(selection: gainBinding, isEnabled: isEditable)
+            SegmentedChipSelector(
+                selection: gainBinding,
+                values: [-12, -6, 0, 6, 12],
+                isEnabled: isEditable,
+                label: gainLabel
+            )
         }
 
         SettingRow(title: L10n.s("rx.monitoringGain")) {
@@ -53,16 +58,15 @@ struct ReceiverSectionView: View {
         }
 
         SettingRow(title: L10n.s("rx.audioChannel")) {
-            Picker("", selection: stereoBinding) {
-                Text(L10n.s("rx.audioChannel.mono")).tag(false)
-                Text(L10n.s("rx.audioChannel.stereo")).tag(true)
-            }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .frame(width: 150)
-            .accessibilityLabel(L10n.s("rx.audioChannel"))
+            SegmentedChipSelector(
+                selection: stereoBinding,
+                values: [false, true],
+                isEnabled: isEditable,
+                label: { isStereo in
+                    L10n.s(isStereo ? "rx.audioChannel.stereo" : "rx.audioChannel.mono")
+                }
+            )
         }
-        .disabled(!isEditable)
 
         SettingRow(title: L10n.s("rx.safetyTrack")) {
             Toggle("", isOn: safetyTrackBinding)
@@ -77,6 +81,14 @@ struct ReceiverSectionView: View {
         Text(L10n.s("rx.unavailable"))
             .font(.subheadline)
             .foregroundStyle(.secondary)
+    }
+
+    private func gainLabel(_ value: Int) -> String {
+        switch value {
+        case 0: "0"
+        case let positive where positive > 0: "+\(positive)"
+        default: "\(value)"
+        }
     }
 
     private func noiseReductionRow(_ receiver: ReceiverState) -> some View {
