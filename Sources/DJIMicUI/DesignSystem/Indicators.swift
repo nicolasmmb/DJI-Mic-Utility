@@ -38,24 +38,28 @@ struct StatusBadge: View {
 }
 
 /// Read-only value shown as a chip, matching the surface language of the
-/// panel's action chips. Used for settings the hardware controls itself, such
-/// as noise reduction.
-struct LockedValueBadge: View {
+/// panel's action chips. Used for locked settings and compact readouts.
+struct ValueChip: View {
     let value: String
+    var systemImage: String?
+    var animatesDigits = false
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 5) {
-            Image(systemName: "lock.fill")
-                .font(.system(size: 9, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .symbolEffect(.pulse, value: value)
+            if let systemImage {
+                Image(systemName: systemImage)
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .symbolEffect(.pulse, value: value)
+            }
 
             Text(value)
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
-                .contentTransition(.opacity)
+                .monospacedDigit()
+                .contentTransition(animatesDigits ? .numericText() : .opacity)
                 .lineLimit(1)
         }
         .padding(.horizontal, 9)
@@ -63,6 +67,16 @@ struct LockedValueBadge: View {
         .background(.secondary.opacity(0.10), in: Capsule())
         .overlay(Capsule().strokeBorder(.secondary.opacity(0.18), lineWidth: 1))
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: value)
+    }
+}
+
+/// Read-only value that the hardware controls itself, such as noise
+/// reduction.
+struct LockedValueBadge: View {
+    let value: String
+
+    var body: some View {
+        ValueChip(value: value, systemImage: "lock.fill")
     }
 }
 

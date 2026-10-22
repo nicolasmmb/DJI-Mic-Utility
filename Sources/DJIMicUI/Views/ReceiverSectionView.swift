@@ -45,11 +45,12 @@ struct ReceiverSectionView: View {
             GainSelector(selection: gainBinding, isEnabled: isEditable)
         }
 
-        MonitoringGainRow(
-            current: receiver.monitoringGain,
-            isEnabled: isEditable,
-            commit: { model.send(.monitoringGain($0)) }
-        )
+        SettingRow(title: L10n.s("rx.monitoringGain")) {
+            MonitoringGainSlider(
+                current: receiver.monitoringGain,
+                isEnabled: isEditable
+            ) { model.send(.monitoringGain($0)) }
+        }
 
         SettingRow(title: L10n.s("rx.audioChannel")) {
             Picker("", selection: stereoBinding) {
@@ -102,38 +103,3 @@ struct ReceiverSectionView: View {
     }
 }
 
-private struct MonitoringGainRow: View {
-    let current: Int
-    let isEnabled: Bool
-    let commit: (Int) -> Void
-
-    @State private var value: Double = 0
-
-    var body: some View {
-        SettingRow(title: L10n.s("rx.monitoringGain")) {
-            HStack(spacing: Spacing.xs) {
-                Slider(value: $value, in: -12...12, onEditingChanged: commitWhenEditingEnds)
-                    .frame(width: 120)
-                    .accessibilityLabel(L10n.s("rx.monitoringGain"))
-
-                Text("\(Int(value.rounded())) dB")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
-                    .frame(width: 38, alignment: .trailing)
-            }
-        }
-        .disabled(!isEnabled)
-        .onAppear { value = Double(current) }
-        .onChange(of: current) { _, newValue in
-            value = Double(newValue)
-        }
-    }
-
-    private func commitWhenEditingEnds(_ isEditing: Bool) {
-        guard !isEditing else { return }
-        let rounded = Int(value.rounded())
-        value = Double(rounded)
-        commit(rounded)
-    }
-}
