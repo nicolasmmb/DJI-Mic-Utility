@@ -126,3 +126,46 @@
 "more.recStopLock.info" = "Permite iniciar a gravação interna pelo botão do transmissor, mas impede parar pelo botão.";
 "more.micLED.info" = "Acende o LED do transmissor para mostrar o status.";
 "more.autoOff.info" = "Desliga o transmissor após 15 minutos sem conexão, gravação ou operação.";
+
+"notif.action.reconnect" = "Reconectar";
+"notif.action.rerecord" = "Gravar novamente";
+"notif.receiver.connected.title" = "Receptor conectado";
+"notif.receiver.connected.body" = "O receptor está pronto.";
+"notif.tx.connected.title" = "TX%d conectado";
+"notif.tx.connected.body" = "O transmissor entrou no link.";
+"notif.battery.charging" = "Carregando";
+"notif.battery.label" = "Bateria: %@";
+"notif.battery.low.title" = "Bateria baixa no TX%d";
+"notif.battery.low.body" = "Coloque o transmissor na base de carregamento.";
+"notif.tx.disconnected.title" = "TX%d desconectado";
+"notif.tx.disconnected.body" = "Verifique bateria, distância e obstáculos.";
+"notif.recording.stopped.title" = "Gravação parou no TX%d";
+"notif.recording.stopped.body" = "A gravação interna foi interrompida.";
+"notif.link.lost.title" = "Receptor desconectado";
+"notif.link.lost.body" = "Verifique o cabo USB-C.";
+
+"notifications.title" = "Notificações";
+"notifications.subtitle" = "Alertas locais neste Mac";
+"notifications.receiverConnected" = "Receptor conectado";
+"notifications.receiverConnected.note" = "Quando o receptor USB conecta.";
+"notifications.transmitterConnected" = "Transmissor conectado";
+"notifications.transmitterConnected.note" = "Quando um transmissor entra no link.";
+"notifications.notifyOnLaunch" = "Avisar ao iniciar";
+"notifications.notifyOnLaunch.note" = "Também avisa se o dispositivo já estiver conectado ao abrir o app.";
+"notifications.lowBattery" = "Bateria baixa";
+"notifications.lowBattery.note" = "Quando um transmissor atinge bateria baixa.";
+"notifications.txDisconnected" = "Transmissor desconectado";
+"notifications.txDisconnected.note" = "Quando um transmissor sai do link.";
+"notifications.recordingStopped" = "Gravação parou";
+"notifications.recordingStopped.note" = "Quando a gravação interna para inesperadamente.";
+"notifications.linkLost" = "Receptor desconectado";
+"notifications.linkLost.note" = "Quando o receptor USB desconecta.";
+"notifications.permission.label" = "Permissão";
+"notifications.permission.allow" = "Permitir notificações";
+"notifications.permission.deniedNote" = "As notificações estão desativadas nos Ajustes do Sistema.";
+"notifications.permission.openSettings" = "Abrir Ajustes";
+
+"notifications.group.connection" = "Conexão";
+"notifications.group.alerts" = "Alertas";
+"notifications.permission.enabled" = "Notificações ativadas.";
+"notifications.test" = "Testar notificação";

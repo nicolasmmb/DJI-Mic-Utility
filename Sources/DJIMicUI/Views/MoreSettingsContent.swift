@@ -125,6 +125,8 @@ private struct MoreSettingsBody: View, Equatable {
                 receiverSection
             }
 
+            NotificationPreferencesSection(settings: model.notificationSettings)
+
             if !state.canEditTransmitter {
                 disconnectedHint
             }

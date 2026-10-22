@@ -126,3 +126,46 @@
 "more.recStopLock.info" = "Allows starting internal recording with the transmitter button, but prevents stopping it from the button.";
 "more.micLED.info" = "Lights the transmitter LED to show its status.";
 "more.autoOff.info" = "Powers off the transmitter after 15 minutes without connection, recording, or operation.";
+
+"notif.action.reconnect" = "Reconnect";
+"notif.action.rerecord" = "Record again";
+"notif.receiver.connected.title" = "Receiver connected";
+"notif.receiver.connected.body" = "The receiver is ready.";
+"notif.tx.connected.title" = "TX%d connected";
+"notif.tx.connected.body" = "The transmitter joined the link.";
+"notif.battery.charging" = "Charging";
+"notif.battery.label" = "Battery: %@";
+"notif.battery.low.title" = "Low battery on TX%d";
+"notif.battery.low.body" = "Place the transmitter on the charging case.";
+"notif.tx.disconnected.title" = "TX%d disconnected";
+"notif.tx.disconnected.body" = "Check battery, distance and obstacles.";
+"notif.recording.stopped.title" = "Recording stopped on TX%d";
+"notif.recording.stopped.body" = "Internal recording was interrupted.";
+"notif.link.lost.title" = "Receiver disconnected";
+"notif.link.lost.body" = "Check the USB-C cable.";
+
+"notifications.title" = "Notifications";
+"notifications.subtitle" = "Local alerts on this Mac";
+"notifications.receiverConnected" = "Receiver connected";
+"notifications.receiverConnected.note" = "When the USB receiver connects.";
+"notifications.transmitterConnected" = "Transmitter connected";
+"notifications.transmitterConnected.note" = "When a transmitter joins the link.";
+"notifications.notifyOnLaunch" = "Notify on launch";
+"notifications.notifyOnLaunch.note" = "Also notify if the device is already connected when the app opens.";
+"notifications.lowBattery" = "Low battery";
+"notifications.lowBattery.note" = "When a transmitter reaches a low battery level.";
+"notifications.txDisconnected" = "Transmitter disconnected";
+"notifications.txDisconnected.note" = "When a transmitter leaves the link.";
+"notifications.recordingStopped" = "Recording stopped";
+"notifications.recordingStopped.note" = "When internal recording stops unexpectedly.";
+"notifications.linkLost" = "Receiver disconnected";
+"notifications.linkLost.note" = "When the USB receiver disconnects.";
+"notifications.permission.label" = "Permission";
+"notifications.permission.allow" = "Allow notifications";
+"notifications.permission.deniedNote" = "Notifications are disabled in System Settings.";
+"notifications.permission.openSettings" = "Open Settings";
+
+"notifications.group.connection" = "Connection";
+"notifications.group.alerts" = "Alerts";
+"notifications.permission.enabled" = "Notifications enabled.";
+"notifications.test" = "Test notification";

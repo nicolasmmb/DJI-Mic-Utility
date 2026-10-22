@@ -95,7 +95,7 @@ import Testing
         .frame(width: 380, alignment: .leading)
     let hosting = NSHostingView(rootView: content)
     hosting.appearance = NSAppearance(named: .aqua)
-    hosting.frame = NSRect(x: 0, y: 0, width: 400, height: 900)
+    hosting.frame = NSRect(x: 0, y: 0, width: 400, height: 1400)
 
     let window = NSWindow(contentRect: hosting.frame, styleMask: [.borderless], backing: .buffered, defer: false)
     window.appearance = NSAppearance(named: .aqua)

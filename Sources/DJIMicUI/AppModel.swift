@@ -14,9 +14,13 @@ public final class AppModel {
     /// Transmitter currently blinking its LED, if a find is running.
     public private(set) var findingUnit: Int?
 
+    public let notificationSettings: NotificationSettings
+
     public var diagnosticLines: [DiagnosticLine] { diagnostics.lines }
 
     private let session: any MicClient
+    private let notificationEngine = NotificationRuleEngine()
+    private let notifier: any NotificationDelivering
     private var diagnostics = DiagnosticLog()
     private var snapshotTask: Task<Void, Never>?
     private var eventTask: Task<Void, Never>?
@@ -36,12 +40,20 @@ public final class AppModel {
 
     public init(
         session: any MicClient = MicSession(),
-        initialSnapshot: DeviceSnapshot = DeviceSnapshot()
+        initialSnapshot: DeviceSnapshot = DeviceSnapshot(),
+        notificationSettings: NotificationSettings? = nil,
+        notifier: any NotificationDelivering = MicNotificationCenter.shared
     ) {
         self.session = session
         self.snapshot = initialSnapshot
         self.systemProfile = initialSnapshot.systemProfile
         self.lastDeviceSnapshot = initialSnapshot
+        self.notificationSettings = notificationSettings ?? NotificationSettings()
+        self.notifier = notifier
+
+        MicNotificationCenter.shared.onAction = { [weak self] action in
+            self?.handleNotificationAction(action)
+        }
         start()
     }
 
@@ -50,6 +62,7 @@ public final class AppModel {
     public func start() {
         guard snapshotTask == nil else { return }
 
+        MicNotificationCenter.shared.configure()
         session.start()
         observeSnapshots()
         observeEvents()
@@ -72,6 +85,15 @@ public final class AppModel {
         appendDiagnostic("Reconnect requested")
     }
 
+    public func handleNotificationAction(_ action: MicNotificationAction) {
+        switch action {
+        case .reconnect:
+            reconnect()
+        case .rerecord(let unit):
+            send(.recording(true, unit: unit))
+        }
+    }
+
     private func observeSnapshots() {
         snapshotTask = Task { [weak self] in
             guard let self else { return }
@@ -91,6 +113,7 @@ public final class AppModel {
             optimisticSettings.removeAll()
             self.snapshot = incoming
             self.systemProfile = incoming.systemProfile
+            evaluateNotifications(for: incoming)
             return
         }
 
@@ -115,6 +138,21 @@ public final class AppModel {
 
         snapshot = merged
         systemProfile = merged.systemProfile
+        evaluateNotifications(for: merged)
+    }
+
+    private func evaluateNotifications(for snapshot: DeviceSnapshot) {
+        let preferences = notificationSettings.snapshot
+        let alerts = notificationEngine.evaluate(
+            snapshot: snapshot,
+            preferences: preferences
+        )
+
+        for alert in alerts {
+            Task { [notifier] in
+                await notifier.post(alert, preferences: preferences)
+            }
+        }
     }
 
     private func observeEvents() {
@@ -131,6 +169,10 @@ public final class AppModel {
     public func send(_ setting: MicSetting) {
         let id = setting.id
         guard canSend(id) else { return }
+
+        if case .recording(false, let unit) = setting {
+            notificationEngine.noteUserStoppedRecording(unit: unit)
+        }
 
         pendingSettings.insert(id)
         optimisticSettings[id] = OptimisticEntry(setting: setting, createdAt: Date())
