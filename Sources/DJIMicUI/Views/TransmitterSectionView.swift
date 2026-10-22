@@ -76,8 +76,9 @@ struct TransmitterSectionView: View {
     }
 }
 
-/// Compact action chip for "Find". Gives the action a clear surface, a hover
-/// state, a press animation, and a pulsing beacon while the LED is blinking.
+/// Compact action chip for "Find". Fixed geometry and a plain crossfade keep
+/// the state change calm: nothing resizes, nothing bounces, only the color and
+/// the two labels fade into each other while the beacon pulses.
 private struct FindTransmitterButton: View {
     let isFinding: Bool
     let isEnabled: Bool
@@ -86,39 +87,29 @@ private struct FindTransmitterButton: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isHovering = false
 
-    private var isActive: Bool { isFinding }
-
-    private var foreground: Color {
-        if isActive { return .orange }
-        return isEnabled ? .primary : .secondary
-    }
+    private let chipWidth: CGFloat = 100
+    private let chipHeight: CGFloat = 26
 
     private var fill: Color {
-        if isActive { return .orange.opacity(0.14) }
+        if isFinding { return .orange.opacity(0.14) }
         return .secondary.opacity(isHovering && isEnabled ? 0.18 : 0.10)
     }
 
     private var stroke: Color {
-        if isActive { return .orange.opacity(0.35) }
+        if isFinding { return .orange.opacity(0.35) }
         return .secondary.opacity(isHovering && isEnabled ? 0.32 : 0.18)
     }
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 5) {
-                Image(systemName: isActive ? "light.beacon.max.fill" : "light.beacon.max")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundStyle(isActive ? Color.orange : Color.secondary)
-                    .contentTransition(.symbolEffect(.replace))
-                    .symbolEffect(.pulse, options: .repeating, isActive: isActive && !reduceMotion)
+            ZStack {
+                label(L10n.s("tx.find"), active: false)
+                    .opacity(isFinding ? 0 : 1)
 
-                Text(isActive ? L10n.s("tx.find.finding") : L10n.s("tx.find"))
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(foreground)
-                    .lineLimit(1)
+                label(L10n.s("tx.find.finding"), active: true)
+                    .opacity(isFinding ? 1 : 0)
             }
-            .padding(.horizontal, 10)
-            .frame(height: 26)
+            .frame(width: chipWidth, height: chipHeight)
             .background(fill, in: Capsule())
             .overlay(Capsule().strokeBorder(stroke, lineWidth: 1))
             .contentShape(Capsule())
@@ -129,12 +120,30 @@ private struct FindTransmitterButton: View {
                 isHovering = hovering
             }
         }
-        .opacity(isEnabled || isActive ? 1 : 0.5)
+        .opacity(isEnabled || isFinding ? 1 : 0.5)
         .disabled(!isEnabled)
-        .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: isActive)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: isFinding)
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(L10n.s("tx.find"))
-        .accessibilityValue(isActive ? L10n.s("tx.find.finding") : L10n.s("tx.find"))
+        .accessibilityValue(isFinding ? L10n.s("tx.find.finding") : L10n.s("tx.find"))
         .help(L10n.s("tx.find.hint"))
     }
-}
 
+    private func label(_ title: String, active: Bool) -> some View {
+        HStack(spacing: 5) {
+            Image(systemName: "light.beacon.max")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(active ? Color.orange : Color.secondary)
+                .symbolEffect(
+                    .pulse,
+                    options: .repeating,
+                    isActive: active && isFinding && !reduceMotion
+                )
+
+            Text(title)
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(active ? Color.orange : (isEnabled ? Color.primary : Color.secondary))
+                .lineLimit(1)
+        }
+    }
+}
