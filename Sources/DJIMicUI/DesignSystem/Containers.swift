@@ -156,10 +156,7 @@ struct ToggleSettingRow: View {
 
     var body: some View {
         SettingRow(title: title, subtitle: subtitle, systemImage: systemImage) {
-            Toggle("", isOn: isOn)
-                .labelsHidden()
-                .toggleStyle(.switch)
-                .accessibilityLabel(title)
+            ChipSwitch(isOn: isOn, isEnabled: isEnabled, label: title)
         }
         .disabled(!isEnabled)
     }

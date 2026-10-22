@@ -1,6 +1,9 @@
 "app.name" = "Mic Control";
 "app.subtitle" = "DJI wireless microphone";
 
+"common.on" = "On";
+"common.off" = "Off";
+
 "status.connected" = "Connected";
 "status.connecting" = "Connecting";
 "status.reconnecting" = "Reconnecting";

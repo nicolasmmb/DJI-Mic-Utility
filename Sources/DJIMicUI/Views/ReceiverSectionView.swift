@@ -69,10 +69,11 @@ struct ReceiverSectionView: View {
         }
 
         SettingRow(title: L10n.s("rx.safetyTrack")) {
-            Toggle("", isOn: safetyTrackBinding)
-                .labelsHidden()
-                .toggleStyle(.switch)
-                .accessibilityLabel(L10n.s("rx.safetyTrack"))
+            ChipSwitch(
+                isOn: safetyTrackBinding,
+                isEnabled: isEditable,
+                label: L10n.s("rx.safetyTrack")
+            )
         }
         .disabled(!isEditable)
     }
