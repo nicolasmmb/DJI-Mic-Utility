@@ -38,16 +38,11 @@ struct DeviceHeaderView: View {
             Spacer(minLength: 0)
 
             if let onMore {
-                Button(action: onMore) {
-                    Image(systemName: "slider.horizontal.3")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundStyle(.secondary)
-                        .frame(width: 26, height: 26)
-                        .contentShape(Rectangle())
-                }
-                .buttonStyle(.borderless)
-                .help(L10n.s("more.title"))
-                .accessibilityLabel(L10n.s("more.title"))
+                HeaderIconButton(
+                    systemImage: "slider.horizontal.3",
+                    title: L10n.s("more.title"),
+                    action: onMore
+                )
             }
         }
         .padding(.horizontal, Spacing.md)

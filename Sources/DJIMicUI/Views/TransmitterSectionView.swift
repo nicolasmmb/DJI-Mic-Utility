@@ -123,7 +123,7 @@ private struct FindTransmitterButton: View {
             .overlay(Capsule().strokeBorder(stroke, lineWidth: 1))
             .contentShape(Capsule())
         }
-        .buttonStyle(FindChipButtonStyle(reduceMotion: reduceMotion))
+        .buttonStyle(PressableChipButtonStyle(reduceMotion: reduceMotion))
         .onHover { hovering in
             withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) {
                 isHovering = hovering
@@ -138,16 +138,3 @@ private struct FindTransmitterButton: View {
     }
 }
 
-private struct FindChipButtonStyle: ButtonStyle {
-    let reduceMotion: Bool
-
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
-            .opacity(configuration.isPressed ? 0.85 : 1)
-            .animation(
-                reduceMotion ? nil : .spring(response: 0.24, dampingFraction: 0.72),
-                value: configuration.isPressed
-            )
-    }
-}
