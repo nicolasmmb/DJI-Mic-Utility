@@ -23,6 +23,10 @@ public final class MicNotificationCenter: NSObject, NotificationDelivering, UNUs
         static let unit = "unit"
     }
 
+    private enum DefaultsKey {
+        static let didRequestAuthorization = "com.niko.djimic.notifications.didRequestAuthorization"
+    }
+
     // `UNUserNotificationCenter.current()` requires a real application bundle.
     // Keep it lazy so test bundles and previews can reference the singleton.
     private lazy var center = UNUserNotificationCenter.current()
@@ -98,7 +102,21 @@ public final class MicNotificationCenter: NSObject, NotificationDelivering, UNUs
 
     public func requestAuthorization() async -> Bool {
         guard isConfigured else { return false }
+        UserDefaults.standard.set(true, forKey: DefaultsKey.didRequestAuthorization)
         return (try? await center.requestAuthorization(options: [.alert, .sound])) ?? false
+    }
+
+    /// Requests permission once, without prompting again on every launch.
+    /// This also registers the app in System Settings > Notifications, where
+    /// it otherwise does not appear until the first request.
+    public func requestAuthorizationIfNeeded() async {
+        guard isConfigured else { return }
+        guard !UserDefaults.standard.bool(forKey: DefaultsKey.didRequestAuthorization) else {
+            return
+        }
+        let status = await center.notificationSettings().authorizationStatus
+        guard status == .notDetermined else { return }
+        _ = await requestAuthorization()
     }
 
     public func authorizationStatus() async -> UNAuthorizationStatus {

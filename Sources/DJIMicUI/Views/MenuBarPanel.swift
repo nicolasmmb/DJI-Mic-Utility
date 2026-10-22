@@ -28,6 +28,10 @@ public struct MenuBarPanel: View {
         .frame(width: PanelMetrics.width, height: PanelMetrics.height)
         .background(PremiumBackdrop())
         .onAppear { model.start() }
+        .task {
+            guard model.notificationSettings.snapshot.anyEnabled else { return }
+            await MicNotificationCenter.shared.requestAuthorizationIfNeeded()
+        }
         .onExitCommand {
             guard route == .moreSettings else { return }
             navigate(to: .main)
