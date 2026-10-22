@@ -115,6 +115,7 @@ struct TransmitterSectionView: View {
             isActive: transmitter.isRecording,
             activeTint: .red,
             isEnabled: isEditable,
+            pulsesWhenActive: true,
             action: {
                 model.send(.recording(!transmitter.isRecording, unit: transmitter.unit))
             }
@@ -153,29 +154,27 @@ private struct TXActionButton: View {
     let isActive: Bool
     let activeTint: Color
     var isEnabled = true
+    var pulsesWhenActive = false
     let action: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isHovering = false
 
-    private var fill: Color {
-        if isActive { return activeTint.opacity(0.14) }
-        return .secondary.opacity(isHovering && isEnabled ? 0.18 : 0.10)
-    }
-
-    private var stroke: Color {
-        if isActive { return activeTint.opacity(0.35) }
-        return .secondary.opacity(isHovering && isEnabled ? 0.32 : 0.18)
-    }
-
     var body: some View {
         Button(action: action) {
             Image(systemName: systemImage)
-                .font(.system(size: 12, weight: .semibold))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(isActive ? activeTint : (isHovering ? Color.primary : Color.secondary))
-                .frame(width: 26, height: 26)
-                .background(fill, in: Circle())
-                .overlay(Circle().strokeBorder(stroke, lineWidth: 1))
+                .symbolEffect(
+                    .pulse,
+                    options: .repeating,
+                    isActive: pulsesWhenActive && isActive && !reduceMotion
+                )
+                .scaleEffect(isHovering && !reduceMotion ? 1.06 : 1)
+                .glassCircle(
+                    size: 36,
+                    tint: isActive ? activeTint.opacity(0.55) : nil
+                )
                 .contentShape(Circle())
         }
         .buttonStyle(PressableChipButtonStyle(reduceMotion: reduceMotion))
@@ -200,20 +199,9 @@ private struct FindTransmitterButton: View {
     let action: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var isHovering = false
 
-    private let chipWidth: CGFloat = 100
-    private let chipHeight: CGFloat = 26
-
-    private var fill: Color {
-        if isFinding { return .orange.opacity(0.14) }
-        return .secondary.opacity(isHovering && isEnabled ? 0.18 : 0.10)
-    }
-
-    private var stroke: Color {
-        if isFinding { return .orange.opacity(0.35) }
-        return .secondary.opacity(isHovering && isEnabled ? 0.32 : 0.18)
-    }
+    private let chipWidth: CGFloat = 112
+    private let chipHeight: CGFloat = 32
 
     var body: some View {
         Button(action: action) {
@@ -225,16 +213,10 @@ private struct FindTransmitterButton: View {
                     .opacity(isFinding ? 1 : 0)
             }
             .frame(width: chipWidth, height: chipHeight)
-            .background(fill, in: Capsule())
-            .overlay(Capsule().strokeBorder(stroke, lineWidth: 1))
+            .glassCapsule(tint: isFinding ? .orange.opacity(0.55) : nil)
             .contentShape(Capsule())
         }
         .buttonStyle(PressableChipButtonStyle(reduceMotion: reduceMotion))
-        .onHover { hovering in
-            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) {
-                isHovering = hovering
-            }
-        }
         .opacity(isEnabled || isFinding ? 1 : 0.5)
         .disabled(!isEnabled)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.2), value: isFinding)
@@ -245,9 +227,9 @@ private struct FindTransmitterButton: View {
     }
 
     private func label(_ title: String, active: Bool) -> some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 6) {
             Image(systemName: "light.beacon.max")
-                .font(.system(size: 11, weight: .semibold))
+                .font(.system(size: 12, weight: .semibold))
                 .foregroundStyle(active ? Color.orange : Color.secondary)
                 .symbolEffect(
                     .pulse,
@@ -256,7 +238,7 @@ private struct FindTransmitterButton: View {
                 )
 
             Text(title)
-                .font(.caption.weight(.semibold))
+                .font(.system(size: 12.5, weight: .semibold, design: .rounded))
                 .foregroundStyle(active ? Color.orange : (isEnabled ? Color.primary : Color.secondary))
                 .lineLimit(1)
         }

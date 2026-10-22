@@ -50,20 +50,20 @@ struct ValueChip: View {
         HStack(spacing: 5) {
             if let systemImage {
                 Image(systemName: systemImage)
-                    .font(.system(size: 9, weight: .semibold))
+                    .font(.system(size: 10, weight: .semibold))
                     .foregroundStyle(.secondary)
                     .symbolEffect(.pulse, value: value)
             }
 
             Text(value)
-                .font(.caption.weight(.semibold))
+                .font(.system(size: 12, weight: .semibold, design: .rounded))
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
                 .contentTransition(animatesDigits ? .numericText() : .opacity)
                 .lineLimit(1)
         }
-        .padding(.horizontal, 9)
-        .frame(height: 24)
+        .padding(.horizontal, 10)
+        .frame(height: 28)
         .background(.secondary.opacity(0.10), in: Capsule())
         .overlay(Capsule().strokeBorder(.secondary.opacity(0.18), lineWidth: 1))
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: value)
@@ -214,11 +214,11 @@ struct LevelMeter: View {
             ZStack(alignment: .leading) {
                 Capsule()
                     .fill(.secondary.opacity(0.14))
-                    .frame(height: 8)
+                    .frame(height: 10)
 
                 Capsule()
                     .fill(gradient)
-                    .frame(height: 8)
+                    .frame(height: 10)
                     .mask(alignment: .leading) {
                         Capsule()
                             .frame(width: fillWidth)

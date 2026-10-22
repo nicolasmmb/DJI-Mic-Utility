@@ -34,9 +34,9 @@ struct MonitoringGainSlider: View {
 
             ValueChip(value: formatted(Int(value.rounded())), systemImage: "headphones", animatesDigits: true)
                 .fixedSize()
-                .frame(width: 78, alignment: .trailing)
+                .frame(width: 90, alignment: .trailing)
         }
-        .frame(width: 210, height: 24)
+        .frame(width: 210, height: 36)
         .opacity(isEnabled ? 1 : 0.5)
         .onAppear { value = Double(current) }
         .onChange(of: current) { _, newValue in
@@ -54,13 +54,13 @@ struct MonitoringGainSlider: View {
             let width = proxy.size.width
             let clamped = min(max(value, Double(range.lowerBound)), Double(range.upperBound))
             let ratio = (clamped - Double(range.lowerBound)) / Double(range.upperBound - range.lowerBound)
-            let x = max(6, min(width * ratio, width - 6))
+            let x = max(8, min(width * ratio, width - 8))
             let center = width / 2
 
             ZStack(alignment: .leading) {
                 Capsule()
-                    .fill(.secondary.opacity(0.14))
-                    .frame(height: 4)
+                    .fill(.primary.opacity(0.16))
+                    .frame(height: 5)
 
                 Capsule()
                     .fill(.primary.opacity(0.55))
@@ -74,12 +74,12 @@ struct MonitoringGainSlider: View {
                     .offset(x: center - 1)
 
                 Circle()
-                    .fill(.background)
-                    .frame(width: 12, height: 12)
+                    .fill(.white)
+                    .frame(width: 16, height: 16)
                     .overlay(Circle().strokeBorder(.secondary.opacity(0.35), lineWidth: 1))
                     .shadow(color: .black.opacity(0.16), radius: 1.5, y: 1)
                     .scaleEffect(isDragging ? 1.18 : (isHovering ? 1.1 : 1))
-                    .offset(x: x - 6)
+                    .offset(x: x - 8)
                     .animation(animation, value: value)
                     .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: isHovering)
                     .animation(reduceMotion ? nil : .easeOut(duration: 0.12), value: isDragging)
@@ -93,7 +93,7 @@ struct MonitoringGainSlider: View {
                 }
             }
         }
-        .frame(height: 24)
+        .frame(height: 36)
         .allowsHitTesting(isEnabled)
     }
 

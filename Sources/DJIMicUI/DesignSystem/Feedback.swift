@@ -52,23 +52,13 @@ struct HeaderIconButton: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isHovering = false
 
-    private var fill: Color {
-        .secondary.opacity(isHovering ? 0.18 : 0.10)
-    }
-
-    private var stroke: Color {
-        .secondary.opacity(isHovering ? 0.32 : 0.18)
-    }
-
     var body: some View {
         Button(action: action) {
             Image(systemName: systemImage)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(isHovering ? Color.primary : Color.secondary)
-                .scaleEffect(isHovering && !reduceMotion ? 1.08 : 1)
-                .frame(width: 26, height: 26)
-                .background(fill, in: Circle())
-                .overlay(Circle().strokeBorder(stroke, lineWidth: 1))
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(isHovering ? Color.primary : Color.primary.opacity(0.75))
+                .scaleEffect(isHovering && !reduceMotion ? 1.06 : 1)
+                .glassCircle(size: PanelMetrics.actionSize)
                 .contentShape(Circle())
         }
         .buttonStyle(PressableChipButtonStyle(reduceMotion: reduceMotion))
@@ -91,42 +81,27 @@ struct ChipButton: View {
     let action: () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var isHovering = false
-
-    private var fill: Color {
-        .secondary.opacity(isHovering ? 0.18 : 0.10)
-    }
-
-    private var stroke: Color {
-        .secondary.opacity(isHovering ? 0.32 : 0.18)
-    }
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 5) {
+            HStack(spacing: 6) {
                 if let systemImage {
                     Image(systemName: systemImage)
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundStyle(.secondary)
                 }
 
                 Text(title)
-                    .font(.caption.weight(.semibold))
+                    .font(.system(size: 12.5, weight: .semibold, design: .rounded))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
             }
-            .padding(.horizontal, 10)
-            .frame(height: 26)
-            .background(fill, in: Capsule())
-            .overlay(Capsule().strokeBorder(stroke, lineWidth: 1))
+            .padding(.horizontal, 13)
+            .frame(height: 32)
+            .glassCapsule()
             .contentShape(Capsule())
         }
         .buttonStyle(PressableChipButtonStyle(reduceMotion: reduceMotion))
-        .onHover { hovering in
-            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) {
-                isHovering = hovering
-            }
-        }
         .modifier(OptionalKeyboardShortcut(shortcut: shortcut))
         .help(title)
         .accessibilityLabel(title)

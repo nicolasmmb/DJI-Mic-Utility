@@ -10,8 +10,10 @@ enum Spacing {
 }
 
 enum PanelMetrics {
-    static let width: CGFloat = 380
-    static let height: CGFloat = 540
-    static let contentInset: CGFloat = 16
-    static let cardRadius: CGFloat = 10
+    static let width: CGFloat = 400
+    static let height: CGFloat = 660
+    static let contentInset: CGFloat = 18
+    static let cardRadius: CGFloat = 24
+    static let controlHeight: CGFloat = 34
+    static let actionSize: CGFloat = 34
 }

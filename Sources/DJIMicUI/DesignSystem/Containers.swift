@@ -7,31 +7,29 @@ struct SectionHeader: View {
     var detail: String?
 
     var body: some View {
-        HStack(spacing: 5) {
+        HStack(spacing: 7) {
             if let systemImage {
                 Image(systemName: systemImage)
-                    .font(.system(size: 10, weight: .semibold))
+                    .font(.system(size: 11, weight: .semibold))
                     .foregroundStyle(.secondary)
             }
 
-            // With a detail (such as the model name), the detail carries the
-            // emphasis and the label stays quiet. Without one, the title is
-            // the only information, so it keeps the emphasis.
-            Text(title)
-                .font(.subheadline.weight(detail == nil ? .semibold : .regular))
-                .foregroundStyle(detail == nil ? .primary : .secondary)
+            Text(title.uppercased())
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .tracking(0.7)
+                .foregroundStyle(.secondary)
                 .lineLimit(1)
                 .layoutPriority(1)
 
             if let detail {
                 Text(detail)
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(.primary)
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.primary.opacity(0.9))
                     .lineLimit(1)
                     .truncationMode(.tail)
             }
         }
-        .padding(.leading, 2)
+        .padding(.leading, 4)
     }
 }
 
@@ -43,6 +41,8 @@ struct SettingsSection<Content: View>: View {
     var action: (() -> Void)?
     var actionTitle: String?
     @ViewBuilder var content: Content
+
+    @Environment(\.colorScheme) private var colorScheme
 
     init(
         title: String,
@@ -63,23 +63,21 @@ struct SettingsSection<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
+        VStack(alignment: .leading, spacing: 10) {
             header
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 10) {
                 content
             }
-            .padding(.horizontal, Spacing.sm)
-            .padding(.vertical, 10)
-            .background(
-                .quaternary.opacity(0.28),
-                in: RoundedRectangle(cornerRadius: PanelMetrics.cardRadius, style: .continuous)
-            )
+            .environment(\.colorScheme, colorScheme)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 14)
+            .glassPanel(cornerRadius: PanelMetrics.cardRadius)
 
             if let footnote {
                 Text(footnote)
-                    .font(.caption)
+                    .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
-                    .padding(.leading, 2)
+                    .padding(.leading, 6)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
@@ -115,25 +113,25 @@ struct SettingRow<Content: View>: View {
     @ViewBuilder var content: Content
 
     var body: some View {
-        HStack(alignment: .center, spacing: Spacing.xs) {
+        HStack(alignment: .center, spacing: 10) {
             if let systemImage {
                 Image(systemName: systemImage)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(.secondary)
-                    .frame(width: 20, alignment: .center)
+                    .frame(width: 22, alignment: .center)
                     .accessibilityHidden(true)
             }
 
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.body)
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundStyle(.primary)
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
 
                 if let subtitle {
                     Text(subtitle)
-                        .font(.caption)
+                        .font(.system(size: 11.5))
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -142,7 +140,7 @@ struct SettingRow<Content: View>: View {
 
             content
         }
-        .frame(minHeight: 26)
+        .frame(minHeight: 38)
     }
 }
 
@@ -164,21 +162,23 @@ struct ToggleSettingRow: View {
 
 struct BackButton: View {
     let action: () -> Void
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         Button(action: action) {
-            HStack(spacing: Spacing.xxs) {
+            HStack(spacing: 5) {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 12, weight: .semibold))
+                    .font(.system(size: 12, weight: .bold))
                 Text(L10n.s("nav.back"))
-                    .font(.subheadline.weight(.medium))
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
             }
-            .foregroundStyle(.secondary)
-            .padding(.vertical, 4)
-            .padding(.trailing, 4)
-            .contentShape(Rectangle())
+            .foregroundStyle(.primary)
+            .padding(.horizontal, 12)
+            .frame(height: 32)
+            .glassCapsule()
+            .contentShape(Capsule())
         }
-        .buttonStyle(.borderless)
+        .buttonStyle(PressableChipButtonStyle(reduceMotion: reduceMotion))
         .accessibilityLabel(L10n.s("nav.back"))
     }
 }

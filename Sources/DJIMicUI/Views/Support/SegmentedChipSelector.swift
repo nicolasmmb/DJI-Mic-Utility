@@ -20,10 +20,10 @@ struct SegmentedChipSelector<Value: Hashable>: View {
                 segment(value)
             }
         }
-        .padding(2)
-        .frame(width: width, height: 24)
-        .background(.secondary.opacity(0.10), in: Capsule())
-        .overlay(Capsule().strokeBorder(.secondary.opacity(0.18), lineWidth: 1))
+        .padding(3)
+        .frame(width: width, height: 36)
+        .background(.primary.opacity(0.05), in: Capsule())
+        .overlay(Capsule().strokeBorder(.primary.opacity(0.10), lineWidth: 0.8))
         .animation(
             reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.82),
             value: selection
@@ -40,7 +40,7 @@ struct SegmentedChipSelector<Value: Hashable>: View {
             selection = value
         } label: {
             Text(label(value))
-                .font(.caption.weight(.semibold))
+                .font(.system(size: 13, weight: .semibold, design: .rounded))
                 .monospacedDigit()
                 .foregroundStyle(isSelected || isHovered ? Color.primary : Color.secondary)
                 .lineLimit(1)
@@ -49,7 +49,12 @@ struct SegmentedChipSelector<Value: Hashable>: View {
                 .background {
                     if isSelected {
                         Capsule()
-                            .fill(.secondary.opacity(0.22))
+                            .fill(.secondary.opacity(0.28))
+                            .overlay(
+                                Capsule()
+                                    .strokeBorder(.white.opacity(0.18), lineWidth: 0.8)
+                            )
+                            .shadow(color: .black.opacity(0.16), radius: 2, y: 1)
                             .matchedGeometryEffect(id: "selection", in: selectionNamespace)
                     } else if isHovered && isEnabled {
                         Capsule()

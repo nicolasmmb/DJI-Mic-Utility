@@ -27,16 +27,20 @@ struct ChipSwitch: View {
         } label: {
             Capsule()
                 .fill(trackFill)
-                .frame(width: 38, height: 22)
+                .frame(width: 44, height: 26)
                 .overlay(alignment: .leading) {
                     Circle()
                         .fill(.white)
-                        .frame(width: 16, height: 16)
-                        .shadow(color: .black.opacity(0.18), radius: 1, y: 1)
+                        .frame(width: 20, height: 20)
+                        .shadow(color: .black.opacity(0.22), radius: 1.5, y: 1)
                         .padding(3)
-                        .offset(x: isOn ? 16 : 0)
-                        .scaleEffect(isHovering && isEnabled ? 1.08 : 1)
+                        .offset(x: isOn ? 18 : 0)
+                        .scaleEffect(isHovering && isEnabled ? 1.06 : 1)
                 }
+                .overlay(
+                    Capsule()
+                        .strokeBorder(.white.opacity(0.18), lineWidth: 0.5)
+                )
                 .animation(animation, value: isOn)
                 .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: isHovering)
                 .contentShape(Capsule())

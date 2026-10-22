@@ -18,14 +18,18 @@ public struct MenuBarPanel: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
-            header
-            Divider()
-            errorBanner
-            pageContent
+        GlassGroup(spacing: 14) {
+            VStack(spacing: 0) {
+                header
+                Divider()
+                    .opacity(0.25)
+                errorBanner
+                pageContent
+            }
+            .frame(width: PanelMetrics.width, height: PanelMetrics.height)
         }
-        .frame(width: PanelMetrics.width, height: PanelMetrics.height)
-        .background(.regularMaterial)
+        .background(PremiumBackdrop())
+        .clipShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
         .onAppear { model.start() }
         .onExitCommand {
             guard route == .moreSettings else { return }
@@ -50,46 +54,45 @@ public struct MenuBarPanel: View {
                 moreSettingsHeader
             }
         }
-        .frame(height: 64)
+        .frame(height: 84)
     }
 
     private var moreSettingsHeader: some View {
-        HStack(spacing: Spacing.sm) {
+        HStack(spacing: 12) {
             BackButton {
                 navigate(to: .main)
             }
             .keyboardShortcut(.cancelAction)
 
-            VStack(alignment: .leading, spacing: 1) {
+            VStack(alignment: .leading, spacing: 2) {
                 Text(L10n.s("more.title"))
-                    .font(.headline)
+                    .font(.system(size: 17, weight: .bold, design: .rounded))
 
                 Text(L10n.s("more.subtitle"))
-                    .font(.caption)
+                    .font(.system(size: 11, weight: .medium, design: .rounded))
                     .foregroundStyle(.secondary)
             }
 
             Spacer(minLength: 0)
 
-            utilityActions
+            GlassGroup(spacing: 8) {
+                HStack(spacing: 8) {
+                    HeaderIconButton(
+                        systemImage: "waveform.path.ecg",
+                        title: L10n.s("menu.diagnostics"),
+                        action: openDiagnostics
+                    )
+
+                    HeaderIconButton(
+                        systemImage: "power",
+                        title: L10n.s("menu.quit"),
+                        action: quit
+                    )
+                }
+            }
         }
         .padding(.horizontal, PanelMetrics.contentInset)
-    }
-
-    private var utilityActions: some View {
-        HStack(spacing: Spacing.xs) {
-            HeaderIconButton(
-                systemImage: "waveform.path.ecg",
-                title: L10n.s("menu.diagnostics"),
-                action: openDiagnostics
-            )
-
-            HeaderIconButton(
-                systemImage: "power",
-                title: L10n.s("menu.quit"),
-                action: quit
-            )
-        }
+        .padding(.vertical, 14)
     }
 
     // MARK: - Error banner
@@ -124,7 +127,7 @@ public struct MenuBarPanel: View {
 
     private var mainPage: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: Spacing.md) {
+            VStack(alignment: .leading, spacing: 20) {
                 if !model.snapshot.connection.isConnected {
                     disconnectedBanner
                 }
@@ -133,7 +136,7 @@ public struct MenuBarPanel: View {
                 transmitterList
             }
             .padding(.horizontal, PanelMetrics.contentInset)
-            .padding(.vertical, 10)
+            .padding(.vertical, 14)
         }
         .scrollIndicators(.automatic)
     }
@@ -161,7 +164,7 @@ public struct MenuBarPanel: View {
         ScrollView {
             MoreSettingsContent(model: model)
                 .padding(.horizontal, PanelMetrics.contentInset)
-                .padding(.vertical, Spacing.sm)
+                .padding(.vertical, 14)
         }
         .scrollIndicators(.automatic)
     }

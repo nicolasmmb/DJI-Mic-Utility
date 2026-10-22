@@ -10,27 +10,27 @@ struct DeviceHeaderView: View {
     var onQuit: (() -> Void)?
 
     var body: some View {
-        HStack(alignment: .top, spacing: Spacing.sm) {
+        HStack(alignment: .top, spacing: 12) {
             Image(systemName: "mic.fill")
-                .font(.system(size: 18, weight: .medium))
+                .font(.system(size: 20, weight: .semibold))
                 .foregroundStyle(.primary)
-                .frame(width: 34, height: 34)
-                .background(.quaternary.opacity(0.6), in: RoundedRectangle(cornerRadius: 9, style: .continuous))
+                .frame(width: 44, height: 44)
+                .glassPanel(cornerRadius: 14)
                 .accessibilityHidden(true)
 
             // The header is app-level, not per-device: it must not show a
             // transmitter's model or battery, since a kit can have two
             // transmitters (possibly different models).
-            VStack(alignment: .leading, spacing: 3) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(L10n.s("app.name"))
-                    .font(.headline)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
                     .lineLimit(1)
 
                 HStack(spacing: Spacing.xs) {
                     StatusBadge(connection: model.snapshot.connection)
                     if let firmware = model.snapshot.receiverIdentity?.firmware {
                         Text("fw \(firmware)")
-                            .font(.caption)
+                            .font(.system(size: 11, weight: .medium, design: .rounded))
                             .foregroundStyle(.tertiary)
                             .monospacedDigit()
                     }
@@ -39,33 +39,35 @@ struct DeviceHeaderView: View {
 
             Spacer(minLength: 0)
 
-            HStack(spacing: Spacing.xs) {
-                if let onMore {
-                    HeaderIconButton(
-                        systemImage: "slider.horizontal.3",
-                        title: L10n.s("more.title"),
-                        action: onMore
-                    )
-                }
+            GlassGroup(spacing: 8) {
+                HStack(spacing: 8) {
+                    if let onMore {
+                        HeaderIconButton(
+                            systemImage: "slider.horizontal.3",
+                            title: L10n.s("more.title"),
+                            action: onMore
+                        )
+                    }
 
-                if let onDiagnostics {
-                    HeaderIconButton(
-                        systemImage: "waveform.path.ecg",
-                        title: L10n.s("menu.diagnostics"),
-                        action: onDiagnostics
-                    )
-                }
+                    if let onDiagnostics {
+                        HeaderIconButton(
+                            systemImage: "waveform.path.ecg",
+                            title: L10n.s("menu.diagnostics"),
+                            action: onDiagnostics
+                        )
+                    }
 
-                if let onQuit {
-                    HeaderIconButton(
-                        systemImage: "power",
-                        title: L10n.s("menu.quit"),
-                        action: onQuit
-                    )
+                    if let onQuit {
+                        HeaderIconButton(
+                            systemImage: "power",
+                            title: L10n.s("menu.quit"),
+                            action: onQuit
+                        )
+                    }
                 }
             }
         }
-        .padding(.horizontal, Spacing.md)
-        .padding(.vertical, Spacing.sm)
+        .padding(.horizontal, PanelMetrics.contentInset)
+        .padding(.vertical, 14)
     }
 }
