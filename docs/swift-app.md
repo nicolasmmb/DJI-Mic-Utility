@@ -1,6 +1,6 @@
 # Swift menu bar app
 
-Branch: `feat/professional-ui` (a partir de `feat/swift-menu-bar-app`).
+Estado: mergeado em `main` (commit `eb1f0f7`).
 
 Aplicativo nativo de barra de menus para configurar o receptor DJI Mic Mini 2
 pelo USB. Não usa código de terceiros; o único código externo é o POC Python,
