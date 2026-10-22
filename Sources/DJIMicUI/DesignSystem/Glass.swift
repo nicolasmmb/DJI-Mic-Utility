@@ -15,7 +15,7 @@ extension View {
             .background(.regularMaterial, in: shape)
             .background(.primary.opacity(0.06), in: shape)
             .overlay(shape.strokeBorder(.primary.opacity(0.10), lineWidth: 0.9))
-            .shadow(color: .black.opacity(0.10), radius: 16, y: 8)
+            .shadow(color: .black.opacity(0.08), radius: 10, y: 5)
     }
 
     @ViewBuilder

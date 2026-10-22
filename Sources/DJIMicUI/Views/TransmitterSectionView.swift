@@ -2,52 +2,82 @@ import DJIMicProtocol
 import Foundation
 import SwiftUI
 
+/// Stable projection of a transmitter card. Input level is intentionally
+/// excluded: it updates at status-push rate and is rendered by a small child
+/// view so the glass card is not rebuilt while scrolling.
+struct TransmitterCardState: Equatable {
+    var unit: Int
+    var name: String?
+    var connected: Bool
+    var isFinding: Bool
+    var findingAny: Bool
+    var isMuted: Bool
+    var isRecording: Bool
+    var batteryGauge: Int
+    var charging: Bool
+    var voiceTone: VoiceTone
+    var recordingTimeTotal: Double?
+    var recordingTimeRemaining: Double?
+    var supportsVoiceTone: Bool
+    var supportsMute: Bool
+    var supportsRecording: Bool
+}
+
 struct TransmitterSectionView: View {
     let model: AppModel
     let transmitter: TransmitterState
 
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-
-    private var isEditable: Bool {
-        model.snapshot.connection.isConnected
-    }
-
-    private var isFinding: Bool {
-        model.findingUnit == transmitter.unit
-    }
-
-    private var profile: DeviceProfile? {
-        model.systemProfile.transmitters[transmitter.unit]
-    }
-
-    private var supportsVoiceTone: Bool {
-        profile?.capabilities.supports(.voiceTone) ?? true
-    }
-
-    private var supportsMute: Bool {
-        profile?.capabilities.supports(.mute) ?? false
-    }
-
-    private var supportsRecording: Bool {
-        profile?.capabilities.supports(.recording) ?? false
-    }
-
-    private var voiceToneBinding: Binding<VoiceTone> {
-        model.settingBinding(
-            get: { transmitter.voiceTone },
-            setting: { .voiceTone($0, unit: transmitter.unit) }
+    private var state: TransmitterCardState {
+        let profile = model.systemProfile.transmitters[transmitter.unit]
+        return TransmitterCardState(
+            unit: transmitter.unit,
+            name: model.snapshot.transmitterDisplayName(unit: transmitter.unit),
+            connected: model.snapshot.connection.isConnected,
+            isFinding: model.findingUnit == transmitter.unit,
+            findingAny: model.findingUnit != nil,
+            isMuted: transmitter.isMuted,
+            isRecording: transmitter.isRecording,
+            batteryGauge: transmitter.batteryGauge,
+            charging: transmitter.charging,
+            voiceTone: transmitter.voiceTone,
+            recordingTimeTotal: transmitter.recordingTimeTotal,
+            recordingTimeRemaining: transmitter.recordingTimeRemaining,
+            supportsVoiceTone: profile?.capabilities.supports(.voiceTone) ?? true,
+            supportsMute: profile?.capabilities.supports(.mute) ?? false,
+            supportsRecording: profile?.capabilities.supports(.recording) ?? false
         )
     }
 
-    private var transmitterName: String? {
-        model.snapshot.transmitterDisplayName(unit: transmitter.unit)
+    var body: some View {
+        TransmitterCardBody(model: model, state: state)
+            .equatable()
+    }
+}
+
+private struct TransmitterCardBody: View, Equatable {
+    let model: AppModel
+    let state: TransmitterCardState
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    static func == (lhs: TransmitterCardBody, rhs: TransmitterCardBody) -> Bool {
+        lhs.state == rhs.state
+    }
+
+    private var isEditable: Bool { state.connected }
+
+    private var voiceToneBinding: Binding<VoiceTone> {
+        Binding(
+            get: { state.voiceTone },
+            set: { model.send(.voiceTone($0, unit: state.unit)) }
+        )
     }
 
     var body: some View {
         SettingsSection(
-            title: L10n.format("tx.title", transmitter.unit),
-            detail: transmitterName,
-            headerTrailing: supportsMute || supportsRecording
+            title: L10n.format("tx.title", state.unit),
+            detail: state.name,
+            headerTrailing: state.supportsMute || state.supportsRecording
                 ? AnyView(headerActions)
                 : nil
         ) {
@@ -55,11 +85,11 @@ struct TransmitterSectionView: View {
                 title: L10n.s("tx.inputLevel"),
                 systemImage: "waveform"
             ) {
-                LevelMeter(level: transmitter.inputLevel)
+                LiveInputLevel(model: model, unit: state.unit)
                     .frame(width: 210)
             }
 
-            if supportsVoiceTone {
+            if state.supportsVoiceTone {
                 SettingRow(
                     title: L10n.s("tx.voiceTone"),
                     systemImage: "waveform.path"
@@ -74,13 +104,13 @@ struct TransmitterSectionView: View {
                 .disabled(!isEditable)
             }
 
-            if supportsRecording {
+            if state.supportsRecording {
                 SettingRow(
                     title: L10n.s("tx.recording"),
                     systemImage: "record.circle"
                 ) {
                     HStack(spacing: Spacing.xs) {
-                        if transmitter.isRecording {
+                        if state.isRecording {
                             HStack(spacing: 4) {
                                 Circle()
                                     .fill(.red)
@@ -102,7 +132,7 @@ struct TransmitterSectionView: View {
                     }
                     .animation(
                         reduceMotion ? nil : .snappy(duration: 0.25),
-                        value: transmitter.isRecording
+                        value: state.isRecording
                     )
                 }
             }
@@ -111,7 +141,11 @@ struct TransmitterSectionView: View {
                 .padding(.vertical, Spacing.xxs)
 
             HStack(alignment: .center, spacing: Spacing.xs) {
-                BatteryView(transmitter: transmitter, showsLabel: true)
+                BatteryView(
+                    gauge: state.batteryGauge,
+                    charging: state.charging,
+                    showsLabel: true
+                )
                 Spacer(minLength: 0)
                 findButton
             }
@@ -121,11 +155,11 @@ struct TransmitterSectionView: View {
 
     private var headerActions: some View {
         HStack(spacing: 8) {
-            if supportsMute {
+            if state.supportsMute {
                 muteButton
             }
 
-            if supportsRecording {
+            if state.supportsRecording {
                 recordButton
             }
         }
@@ -133,34 +167,34 @@ struct TransmitterSectionView: View {
 
     private var muteButton: some View {
         TXActionButton(
-            systemImage: transmitter.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill",
-            title: transmitter.isMuted ? L10n.s("tx.mute.on") : L10n.s("tx.mute"),
-            isActive: transmitter.isMuted,
+            systemImage: state.isMuted ? "speaker.slash.fill" : "speaker.wave.2.fill",
+            title: state.isMuted ? L10n.s("tx.mute.on") : L10n.s("tx.mute"),
+            isActive: state.isMuted,
             activeTint: .orange,
             isEnabled: isEditable,
             action: {
-                model.send(.mute(!transmitter.isMuted, unit: transmitter.unit))
+                model.send(.mute(!state.isMuted, unit: state.unit))
             }
         )
     }
 
     private var recordButton: some View {
         TXActionButton(
-            systemImage: transmitter.isRecording ? "stop.circle.fill" : "record.circle",
-            title: transmitter.isRecording ? L10n.s("tx.rec.stop") : L10n.s("tx.rec"),
-            isActive: transmitter.isRecording,
+            systemImage: state.isRecording ? "stop.circle.fill" : "record.circle",
+            title: state.isRecording ? L10n.s("tx.rec.stop") : L10n.s("tx.rec"),
+            isActive: state.isRecording,
             activeTint: .red,
             isEnabled: isEditable,
             pulsesWhenActive: true,
             action: {
-                model.send(.recording(!transmitter.isRecording, unit: transmitter.unit))
+                model.send(.recording(!state.isRecording, unit: state.unit))
             }
         )
     }
 
     private var recordingTimeText: String? {
-        guard let total = transmitter.recordingTimeTotal,
-              let remaining = transmitter.recordingTimeRemaining else {
+        guard let total = state.recordingTimeTotal,
+              let remaining = state.recordingTimeRemaining else {
             return nil
         }
         return String(format: "%.1fh / %.1fh", total, remaining)
@@ -168,9 +202,9 @@ struct TransmitterSectionView: View {
 
     private var findButton: some View {
         FindTransmitterButton(
-            isFinding: isFinding,
-            isEnabled: isEditable && model.findingUnit == nil,
-            action: { model.findTransmitter(unit: transmitter.unit) }
+            isFinding: state.isFinding,
+            isEnabled: isEditable && !state.findingAny,
+            action: { model.findTransmitter(unit: state.unit) }
         )
     }
 
@@ -180,6 +214,17 @@ struct TransmitterSectionView: View {
         case .rich: L10n.s("tx.voiceTone.rich")
         case .bright: L10n.s("tx.voiceTone.bright")
         }
+    }
+}
+
+/// Live-only island: the parent card is Equatable and does not observe the
+/// 10 Hz input level; this view updates by itself.
+private struct LiveInputLevel: View {
+    let model: AppModel
+    let unit: Int
+
+    var body: some View {
+        LevelMeter(level: model.snapshot.transmitters[unit]?.inputLevel)
     }
 }
 

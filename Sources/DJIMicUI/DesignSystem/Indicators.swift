@@ -132,13 +132,26 @@ private struct BatteryPresentation {
 }
 
 struct BatteryView: View {
-    let transmitter: TransmitterState?
+    let gauge: Int?
+    var charging = false
     /// Adds a small "Battery" caption above the value, for card footers where
     /// the icon alone would be ambiguous.
     var showsLabel = false
 
+    init(transmitter: TransmitterState?, showsLabel: Bool = false) {
+        self.gauge = transmitter?.batteryGauge
+        self.charging = transmitter?.charging ?? false
+        self.showsLabel = showsLabel
+    }
+
+    init(gauge: Int?, charging: Bool = false, showsLabel: Bool = false) {
+        self.gauge = gauge
+        self.charging = charging
+        self.showsLabel = showsLabel
+    }
+
     private var presentation: BatteryPresentation {
-        BatteryPresentation.make(for: transmitter?.batteryGauge)
+        BatteryPresentation.make(for: gauge)
     }
 
     var body: some View {
@@ -147,8 +160,10 @@ struct BatteryView: View {
         VStack(alignment: .leading, spacing: 1) {
             if showsLabel {
                 Text(L10n.s("tx.battery"))
-                    .font(.caption2)
-                    .foregroundStyle(.tertiary)
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .tracking(0.5)
+                    .textCase(.uppercase)
+                    .foregroundStyle(.secondary)
             }
 
             HStack(spacing: Spacing.xxs) {
@@ -157,14 +172,14 @@ struct BatteryView: View {
                     .foregroundStyle(presentation.isLow ? .orange : .primary)
                     .contentTransition(.symbolEffect(.replace))
 
-                if transmitter?.charging == true {
+                if charging {
                     Image(systemName: "bolt.fill")
                         .font(.system(size: 9, weight: .bold))
                         .foregroundStyle(.green)
                 }
 
                 Text(presentation.label)
-                    .font(.caption)
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
                     .foregroundStyle(.secondary)
                     .monospacedDigit()
                     .contentTransition(.numericText())

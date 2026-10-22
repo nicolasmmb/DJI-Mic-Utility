@@ -1,36 +1,70 @@
 import DJIMicProtocol
 import SwiftUI
 
+/// Stable projection of the receiver settings. Excludes fields that change at
+/// status-push rate so the glass card is not rebuilt while scrolling.
+struct ReceiverCardState: Equatable {
+    var connected: Bool
+    var hasReceiver: Bool
+    var noiseCancelEnabled: Bool
+    var noiseCancelStrong: Bool
+    var gain: Int
+    var monitoringGain: Int
+    var stereo: Bool
+    var safetyTrack: Bool
+}
+
 struct ReceiverSectionView: View {
     let model: AppModel
 
-    private var receiver: ReceiverState? {
-        model.snapshot.receiver
-    }
-
-    private var isEditable: Bool {
-        model.snapshot.connection.isConnected && receiver != nil
-    }
-
-    private var gainBinding: Binding<Int> {
-        model.settingBinding(get: { receiver?.gain ?? 0 }, setting: { .gain($0) })
-    }
-
-    private var stereoBinding: Binding<Bool> {
-        model.settingBinding(get: { receiver?.stereo ?? false }, setting: { .stereo($0) })
-    }
-
-    private var safetyTrackBinding: Binding<Bool> {
-        model.settingBinding(
-            get: { receiver?.safetyTrack ?? false },
-            setting: { .safetyTrack($0) }
+    private var state: ReceiverCardState {
+        let receiver = model.snapshot.receiver
+        return ReceiverCardState(
+            connected: model.snapshot.connection.isConnected,
+            hasReceiver: receiver != nil,
+            noiseCancelEnabled: receiver?.noiseCancelEnabled ?? false,
+            noiseCancelStrong: receiver?.noiseCancelStrong ?? false,
+            gain: receiver?.gain ?? 0,
+            monitoringGain: receiver?.monitoringGain ?? 0,
+            stereo: receiver?.stereo ?? false,
+            safetyTrack: receiver?.safetyTrack ?? false
         )
     }
 
     var body: some View {
+        ReceiverCardBody(model: model, state: state)
+            .equatable()
+    }
+}
+
+private struct ReceiverCardBody: View, Equatable {
+    let model: AppModel
+    let state: ReceiverCardState
+
+    static func == (lhs: ReceiverCardBody, rhs: ReceiverCardBody) -> Bool {
+        lhs.state == rhs.state
+    }
+
+    private var isEditable: Bool {
+        state.connected && state.hasReceiver
+    }
+
+    private var gainBinding: Binding<Int> {
+        Binding(get: { state.gain }, set: { model.send(.gain($0)) })
+    }
+
+    private var stereoBinding: Binding<Bool> {
+        Binding(get: { state.stereo }, set: { model.send(.stereo($0)) })
+    }
+
+    private var safetyTrackBinding: Binding<Bool> {
+        Binding(get: { state.safetyTrack }, set: { model.send(.safetyTrack($0)) })
+    }
+
+    var body: some View {
         SettingsSection(title: L10n.s("rx.title")) {
-            if let receiver {
-                receiverSettings(receiver)
+            if state.hasReceiver {
+                receiverSettings
             } else {
                 unavailableMessage
             }
@@ -38,7 +72,7 @@ struct ReceiverSectionView: View {
     }
 
     @ViewBuilder
-    private func receiverSettings(_ receiver: ReceiverState) -> some View {
+    private var receiverSettings: some View {
         SettingsGroupLabel(title: L10n.s("rx.group.levels"))
 
         SettingRow(
@@ -55,7 +89,7 @@ struct ReceiverSectionView: View {
 
         SettingRow(title: L10n.s("rx.monitoringGain")) {
             MonitoringGainSlider(
-                current: receiver.monitoringGain,
+                current: state.monitoringGain,
                 isEnabled: isEditable
             ) { model.send(.monitoringGain($0)) }
         }
@@ -86,13 +120,13 @@ struct ReceiverSectionView: View {
             ) {
                 ChipSwitch(
                     isOn: safetyTrackBinding,
-                    isEnabled: isEditable && !receiver.stereo,
+                    isEnabled: isEditable && !state.stereo,
                     label: L10n.s("rx.safetyTrack")
                 )
             }
             .disabled(!isEditable)
 
-            if receiver.stereo {
+            if state.stereo {
                 Text(L10n.s("rx.safetyTrack.monoOnly"))
                     .font(.system(size: 11.5))
                     .foregroundStyle(.secondary)
@@ -105,7 +139,7 @@ struct ReceiverSectionView: View {
             .padding(.vertical, 2)
 
         SettingsGroupLabel(title: L10n.s("rx.group.noise"))
-        noiseReductionRow(receiver)
+        noiseReductionRow
     }
 
     private var unavailableMessage: some View {
@@ -122,24 +156,23 @@ struct ReceiverSectionView: View {
         }
     }
 
-    private func noiseReductionRow(_ receiver: ReceiverState) -> some View {
+    private var noiseReductionRow: some View {
         SettingRow(
             title: L10n.s("rx.noiseReduction"),
             subtitle: L10n.s("rx.noiseReduction.locked"),
             systemImage: "waveform"
         ) {
-            LockedValueBadge(value: noiseReductionLabel(receiver))
+            LockedValueBadge(value: noiseReductionLabel)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(L10n.s("rx.noiseReduction")), \(noiseReductionLabel(receiver))")
+        .accessibilityLabel("\(L10n.s("rx.noiseReduction")), \(noiseReductionLabel)")
     }
 
-    private func noiseReductionLabel(_ receiver: ReceiverState) -> String {
-        switch (receiver.noiseCancelEnabled, receiver.noiseCancelStrong) {
+    private var noiseReductionLabel: String {
+        switch (state.noiseCancelEnabled, state.noiseCancelStrong) {
         case (false, _): L10n.s("rx.noiseReduction.off")
         case (true, true): L10n.s("rx.noiseReduction.strong")
         case (true, false): L10n.s("rx.noiseReduction.basic")
         }
     }
 }
-
