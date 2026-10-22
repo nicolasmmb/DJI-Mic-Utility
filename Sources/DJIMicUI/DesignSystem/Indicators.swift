@@ -90,6 +90,9 @@ private struct BatteryPresentation {
 
 struct BatteryView: View {
     let transmitter: TransmitterState?
+    /// Adds a small "Battery" caption above the value, for card footers where
+    /// the icon alone would be ambiguous.
+    var showsLabel = false
 
     private var presentation: BatteryPresentation {
         BatteryPresentation.make(for: transmitter?.batteryGauge)
@@ -98,23 +101,31 @@ struct BatteryView: View {
     var body: some View {
         let presentation = presentation
 
-        HStack(spacing: Spacing.xxs) {
-            Image(systemName: presentation.symbol)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(presentation.isLow ? .orange : .primary)
-                .contentTransition(.symbolEffect(.replace))
-
-            if transmitter?.charging == true {
-                Image(systemName: "bolt.fill")
-                    .font(.system(size: 9, weight: .bold))
-                    .foregroundStyle(.green)
+        VStack(alignment: .leading, spacing: 1) {
+            if showsLabel {
+                Text(L10n.s("tx.battery"))
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
             }
 
-            Text(presentation.label)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .monospacedDigit()
-                .contentTransition(.numericText())
+            HStack(spacing: Spacing.xxs) {
+                Image(systemName: presentation.symbol)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(presentation.isLow ? .orange : .primary)
+                    .contentTransition(.symbolEffect(.replace))
+
+                if transmitter?.charging == true {
+                    Image(systemName: "bolt.fill")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundStyle(.green)
+                }
+
+                Text(presentation.label)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+            }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(L10n.format("accessibility.battery", presentation.label))

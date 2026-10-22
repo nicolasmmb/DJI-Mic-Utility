@@ -50,31 +50,21 @@ struct TransmitterSectionView: View {
             Divider()
                 .padding(.vertical, Spacing.xxs)
 
-            HStack(spacing: Spacing.sm) {
-                BatteryView(transmitter: transmitter)
+            HStack(alignment: .center, spacing: Spacing.sm) {
+                BatteryView(transmitter: transmitter, showsLabel: true)
                 Spacer(minLength: 0)
                 findButton
             }
-            .frame(minHeight: 26)
+            .frame(minHeight: 30)
         }
     }
 
     private var findButton: some View {
-        Button {
-            model.findTransmitter(unit: transmitter.unit)
-        } label: {
-            Label(
-                isFinding ? L10n.s("tx.find.finding") : L10n.s("tx.find"),
-                systemImage: isFinding ? "light.beacon.max.fill" : "light.beacon.max"
-            )
-            .font(.caption.weight(.medium))
-        }
-        .buttonStyle(.bordered)
-        .controlSize(.small)
-        .disabled(!isEditable || model.findingUnit != nil)
-        .accessibilityLabel(L10n.s("tx.find"))
-        .accessibilityValue(isFinding ? L10n.s("tx.find.finding") : L10n.s("tx.find"))
-        .help(L10n.s("tx.find.hint"))
+        FindTransmitterButton(
+            isFinding: isFinding,
+            isEnabled: isEditable && model.findingUnit == nil,
+            action: { model.findTransmitter(unit: transmitter.unit) }
+        )
     }
 
     private func voiceToneLabel(_ tone: VoiceTone) -> String {
@@ -83,5 +73,81 @@ struct TransmitterSectionView: View {
         case .rich: L10n.s("tx.voiceTone.rich")
         case .bright: L10n.s("tx.voiceTone.bright")
         }
+    }
+}
+
+/// Compact action chip for "Find". Gives the action a clear surface, a hover
+/// state, a press animation, and a pulsing beacon while the LED is blinking.
+private struct FindTransmitterButton: View {
+    let isFinding: Bool
+    let isEnabled: Bool
+    let action: () -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isHovering = false
+
+    private var isActive: Bool { isFinding }
+
+    private var foreground: Color {
+        if isActive { return .orange }
+        return isEnabled ? .primary : .secondary
+    }
+
+    private var fill: Color {
+        if isActive { return .orange.opacity(0.14) }
+        return .secondary.opacity(isHovering && isEnabled ? 0.18 : 0.10)
+    }
+
+    private var stroke: Color {
+        if isActive { return .orange.opacity(0.35) }
+        return .secondary.opacity(isHovering && isEnabled ? 0.32 : 0.18)
+    }
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 5) {
+                Image(systemName: isActive ? "light.beacon.max.fill" : "light.beacon.max")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(isActive ? Color.orange : Color.secondary)
+                    .contentTransition(.symbolEffect(.replace))
+                    .symbolEffect(.pulse, options: .repeating, isActive: isActive && !reduceMotion)
+
+                Text(isActive ? L10n.s("tx.find.finding") : L10n.s("tx.find"))
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(foreground)
+                    .lineLimit(1)
+            }
+            .padding(.horizontal, 10)
+            .frame(height: 26)
+            .background(fill, in: Capsule())
+            .overlay(Capsule().strokeBorder(stroke, lineWidth: 1))
+            .contentShape(Capsule())
+        }
+        .buttonStyle(FindChipButtonStyle(reduceMotion: reduceMotion))
+        .onHover { hovering in
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) {
+                isHovering = hovering
+            }
+        }
+        .opacity(isEnabled || isActive ? 1 : 0.5)
+        .disabled(!isEnabled)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.15), value: isActive)
+        .accessibilityLabel(L10n.s("tx.find"))
+        .accessibilityValue(isActive ? L10n.s("tx.find.finding") : L10n.s("tx.find"))
+        .help(L10n.s("tx.find.hint"))
+    }
+}
+
+private struct FindChipButtonStyle: ButtonStyle {
+    let reduceMotion: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
+            .opacity(configuration.isPressed ? 0.85 : 1)
+            .animation(
+                reduceMotion ? nil : .spring(response: 0.24, dampingFraction: 0.72),
+                value: configuration.isPressed
+            )
     }
 }
