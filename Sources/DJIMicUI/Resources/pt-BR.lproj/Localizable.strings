@@ -29,7 +29,7 @@
 "rx.noiseReduction.strong" = "Forte";
 "rx.noiseReduction.locked" = "Controlada pela chave O/L/H do receptor.";
 "rx.gain" = "Ganho";
-"rx.monitoringGain" = "Ganho de monitoramento";
+"rx.monitoringGain" = "Ganho de escuta";
 "rx.audioChannel" = "Canal de áudio";
 "rx.audioChannel.mono" = "Mono";
 "rx.audioChannel.stereo" = "Estéreo";

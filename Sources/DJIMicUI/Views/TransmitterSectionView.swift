@@ -30,15 +30,12 @@ struct TransmitterSectionView: View {
             detail: transmitterName
         ) {
             SettingRow(title: L10n.s("tx.voiceTone")) {
-                Picker("", selection: voiceToneBinding) {
-                    ForEach(VoiceTone.allCases, id: \.self) { tone in
-                        Text(voiceToneLabel(tone)).tag(tone)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .frame(width: 210)
-                .accessibilityLabel(L10n.s("tx.voiceTone"))
+                SegmentedChipSelector(
+                    selection: voiceToneBinding,
+                    values: VoiceTone.allCases,
+                    isEnabled: isEditable,
+                    label: voiceToneLabel
+                )
             }
             .disabled(!isEditable)
 

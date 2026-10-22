@@ -1,6 +1,6 @@
 import Foundation
 
-public enum VoiceTone: String, CaseIterable, Sendable, Equatable {
+public enum VoiceTone: String, CaseIterable, Sendable, Hashable {
     case regular
     case rich
     case bright
