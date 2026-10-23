@@ -12,19 +12,19 @@ public protocol NotificationDelivering: AnyObject {
 public final class MicNotificationCenter: NSObject, NotificationDelivering, UNUserNotificationCenterDelegate, @unchecked Sendable {
     public static let shared = MicNotificationCenter()
 
-    private enum Category {
-        static let linkLost = "MIC_LINK_LOST"
-        static let recordingStopped = "MIC_RECORDING_STOPPED"
-        static let reconnect = "MIC_RECONNECT"
-        static let rerecord = "MIC_RERECORD"
+    private enum Category: String {
+        case linkLost = "MIC_LINK_LOST"
+        case recordingStopped = "MIC_RECORDING_STOPPED"
+        case reconnect = "MIC_RECONNECT"
+        case rerecord = "MIC_RERECORD"
     }
 
-    private enum UserInfoKey {
-        static let unit = "unit"
+    private enum UserInfoKey: String {
+        case unit
     }
 
-    private enum DefaultsKey {
-        static let didRequestAuthorization = "com.niko.djimic.notifications.didRequestAuthorization"
+    private enum DefaultsKey: String {
+        case didRequestAuthorization = "com.niko.djimic.notifications.didRequestAuthorization"
     }
 
     // `UNUserNotificationCenter.current()` requires a real application bundle.
@@ -76,10 +76,10 @@ public final class MicNotificationCenter: NSObject, NotificationDelivering, UNUs
         center.delegate = self
         center.setNotificationCategories([
             UNNotificationCategory(
-                identifier: Category.linkLost,
+                identifier: Category.linkLost.rawValue,
                 actions: [
                     UNNotificationAction(
-                        identifier: Category.reconnect,
+                        identifier: Category.reconnect.rawValue,
                         title: L10n.s("notif.action.reconnect")
                     )
                 ],
@@ -87,10 +87,10 @@ public final class MicNotificationCenter: NSObject, NotificationDelivering, UNUs
                 options: []
             ),
             UNNotificationCategory(
-                identifier: Category.recordingStopped,
+                identifier: Category.recordingStopped.rawValue,
                 actions: [
                     UNNotificationAction(
-                        identifier: Category.rerecord,
+                        identifier: Category.rerecord.rawValue,
                         title: L10n.s("notif.action.rerecord")
                     )
                 ],
@@ -102,7 +102,7 @@ public final class MicNotificationCenter: NSObject, NotificationDelivering, UNUs
 
     public func requestAuthorization() async -> Bool {
         guard isConfigured else { return false }
-        UserDefaults.standard.set(true, forKey: DefaultsKey.didRequestAuthorization)
+        UserDefaults.standard.set(true, forKey: DefaultsKey.didRequestAuthorization.rawValue)
         return (try? await center.requestAuthorization(options: [.alert, .sound])) ?? false
     }
 
@@ -111,7 +111,7 @@ public final class MicNotificationCenter: NSObject, NotificationDelivering, UNUs
     /// it otherwise does not appear until the first request.
     public func requestAuthorizationIfNeeded() async {
         guard isConfigured else { return }
-        guard !UserDefaults.standard.bool(forKey: DefaultsKey.didRequestAuthorization) else {
+        guard !UserDefaults.standard.bool(forKey: DefaultsKey.didRequestAuthorization.rawValue) else {
             return
         }
         let status = await center.notificationSettings().authorizationStatus
@@ -187,10 +187,10 @@ public final class MicNotificationCenter: NSObject, NotificationDelivering, UNUs
         let userInfo = response.notification.request.content.userInfo
 
         switch action {
-        case Category.reconnect:
+        case Category.reconnect.rawValue:
             dispatch(.reconnect)
-        case Category.rerecord:
-            if let unit = userInfo[UserInfoKey.unit] as? Int {
+        case Category.rerecord.rawValue:
+            if let unit = userInfo[UserInfoKey.unit.rawValue] as? Int {
                 dispatch(.rerecord(unit: unit))
             }
         default:
@@ -272,8 +272,8 @@ public final class MicNotificationCenter: NSObject, NotificationDelivering, UNUs
 
     private func category(for alert: MicAlert) -> String {
         switch alert {
-        case .linkLost: Category.linkLost
-        case .recordingStopped: Category.recordingStopped
+        case .linkLost: Category.linkLost.rawValue
+        case .recordingStopped: Category.recordingStopped.rawValue
         default: ""
         }
     }
@@ -284,7 +284,7 @@ public final class MicNotificationCenter: NSObject, NotificationDelivering, UNUs
              .lowBattery(let unit, _, _),
              .transmitterDisconnected(let unit, _),
              .recordingStopped(let unit, _):
-            return [UserInfoKey.unit: unit]
+            return [UserInfoKey.unit.rawValue: unit]
         default:
             return [:]
         }

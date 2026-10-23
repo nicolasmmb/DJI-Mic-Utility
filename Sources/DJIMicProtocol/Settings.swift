@@ -23,6 +23,25 @@ public enum SettingID: String, CaseIterable, Sendable, Hashable {
 /// Alias used by the device-profile layer.
 public typealias SettingKey = SettingID
 
+/// DUML command identifiers used by settings supported by this app.
+public enum SettingCommandID: UInt16, Sendable {
+    case recording = 0x0002
+    case lowCut = 0x0003
+    case vibration = 0x0004
+    case stereo = 0x0008
+    case mute = 0x0009
+    case micLED = 0x000A
+    case recStopLock = 0x000B
+    case float32Recording = 0x000C
+    case autoOff = 0x0010
+    case clippingControl = 0x001E
+    case safetyTrack = 0x0021
+    case monitoringGain = 0x0026
+    case voiceTone = 0x0029
+    case startupAutoRecording = 0x002E
+    case gain = 0x0039
+}
+
 public enum MicSetting: Sendable, Equatable {
     case gain(Int)
     case monitoringGain(Int)
@@ -120,8 +139,7 @@ public enum MicSetting: Sendable, Equatable {
     /// Resolves the command against a specific device profile. Returns `nil`
     /// when the profile does not support the setting.
     public func command(for profile: DeviceProfile) -> MicCommand? {
-        guard profile.capabilities.supports(id),
-              let spec = profile.commands[id] else {
+        guard let spec = profile.commands[id] else {
             return nil
         }
 
@@ -157,21 +175,21 @@ public enum MicSetting: Sendable, Equatable {
 
     private var commandID: UInt16 {
         switch self {
-        case .gain: 0x0039
-        case .monitoringGain: 0x0026
-        case .safetyTrack: 0x0021
-        case .stereo: 0x0008
-        case .lowCut: 0x0003
-        case .micLED: 0x000A
-        case .voiceTone: 0x0029
-        case .clippingControl: 0x001E
-        case .autoOffTX, .autoOffRX: 0x0010
-        case .mute: 0x0009
-        case .recording: 0x0002
-        case .vibration: 0x0004
-        case .float32Recording: 0x000C
-        case .recStopLock: 0x000B
-        case .startupAutoRecording: 0x002E
+        case .gain: SettingCommandID.gain.rawValue
+        case .monitoringGain: SettingCommandID.monitoringGain.rawValue
+        case .safetyTrack: SettingCommandID.safetyTrack.rawValue
+        case .stereo: SettingCommandID.stereo.rawValue
+        case .lowCut: SettingCommandID.lowCut.rawValue
+        case .micLED: SettingCommandID.micLED.rawValue
+        case .voiceTone: SettingCommandID.voiceTone.rawValue
+        case .clippingControl: SettingCommandID.clippingControl.rawValue
+        case .autoOffTX, .autoOffRX: SettingCommandID.autoOff.rawValue
+        case .mute: SettingCommandID.mute.rawValue
+        case .recording: SettingCommandID.recording.rawValue
+        case .vibration: SettingCommandID.vibration.rawValue
+        case .float32Recording: SettingCommandID.float32Recording.rawValue
+        case .recStopLock: SettingCommandID.recStopLock.rawValue
+        case .startupAutoRecording: SettingCommandID.startupAutoRecording.rawValue
         }
     }
 

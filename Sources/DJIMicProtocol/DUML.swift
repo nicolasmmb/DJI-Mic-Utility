@@ -9,6 +9,12 @@ public enum DUML {
     public static let maxFrameLength = 2048
 }
 
+public enum DUMLPushType: UInt8, Sendable {
+    case identity = 0x01
+    case status = 0x03
+    case level = 0x05
+}
+
 public enum CommandTarget: UInt16, Sendable, Equatable {
     case receiver = 0x0000
     case transmitter1 = 0x0001

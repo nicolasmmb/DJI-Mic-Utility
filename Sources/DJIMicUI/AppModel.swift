@@ -108,18 +108,20 @@ public final class AppModel {
     /// command reached the receiver.
     private func apply(_ incoming: DeviceSnapshot) {
         lastDeviceSnapshot = incoming
+        let merged = mergeOptimisticSettings(into: incoming, now: Date())
+        snapshot = merged
+        systemProfile = merged.systemProfile
+        evaluateNotifications(for: merged)
+    }
 
+    private func mergeOptimisticSettings(into incoming: DeviceSnapshot, now: Date) -> DeviceSnapshot {
         guard incoming.connection.isConnected else {
             optimisticSettings.removeAll()
-            self.snapshot = incoming
-            self.systemProfile = incoming.systemProfile
-            evaluateNotifications(for: incoming)
-            return
+            return incoming
         }
 
         var merged = incoming
         var settled: [SettingID] = []
-        let now = Date()
 
         for (id, entry) in optimisticSettings {
             let confirmed = incoming.reflects(entry.setting)
@@ -135,10 +137,7 @@ public final class AppModel {
         for id in settled {
             optimisticSettings[id] = nil
         }
-
-        snapshot = merged
-        systemProfile = merged.systemProfile
-        evaluateNotifications(for: merged)
+        return merged
     }
 
     private func evaluateNotifications(for snapshot: DeviceSnapshot) {

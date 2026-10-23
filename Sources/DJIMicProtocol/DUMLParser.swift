@@ -121,14 +121,14 @@ public struct DUMLParser: Sendable {
     private static func parsePush(_ payload: [UInt8], statusLayout: StatusLayout) -> Push? {
         guard payload.count >= 4 else { return nil }
 
-        switch payload[3] {
-        case 0x01:
+        switch DUMLPushType(rawValue: payload[3]) {
+        case .identity:
             return .identity(parseIdentity(payload))
-        case 0x03:
+        case .status:
             return .status(parseStatus(payload, statusLayout: statusLayout))
-        case 0x05:
+        case .level:
             return .level(parseLevel(payload))
-        default:
+        case nil:
             return .unknown(type: payload[3], payload: payload)
         }
     }

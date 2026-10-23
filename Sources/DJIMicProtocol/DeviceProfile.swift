@@ -7,6 +7,14 @@ public enum DeviceFamily: String, Sendable, Equatable {
     case micMini2
     case mic2
     case unknown
+
+    public init(productName: String?) {
+        switch productName {
+        case "DJI Mic Mini 2": self = .micMini2
+        case "DJI Mic 2": self = .mic2
+        default: self = .unknown
+        }
+    }
 }
 
 /// Where a command is addressed.
@@ -41,24 +49,24 @@ public struct DeviceCapabilities: Sendable {
         settings.contains(key)
     }
 
-    public static let none = DeviceCapabilities(settings: [])
 }
 
 /// Capabilities, command table and parse layout for one component.
 public struct DeviceProfile: Sendable {
     public var family: DeviceFamily
-    public var capabilities: DeviceCapabilities
     public var commands: [SettingID: CommandSpec]
     public var statusLayout: StatusLayout
 
+    public var capabilities: DeviceCapabilities {
+        DeviceCapabilities(settings: Set(commands.keys))
+    }
+
     public init(
         family: DeviceFamily,
-        capabilities: DeviceCapabilities,
         commands: [SettingID: CommandSpec],
         statusLayout: StatusLayout
     ) {
         self.family = family
-        self.capabilities = capabilities
         self.commands = commands
         self.statusLayout = statusLayout
     }
@@ -87,8 +95,10 @@ public struct DeviceSystemProfile: Sendable {
     /// be paired with Mic 2 transmitters, so the transmitter layout wins when
     /// it carries extra fields.
     public var statusLayout: StatusLayout {
-        let layouts = [receiver.statusLayout] + transmitters.values.map(\.statusLayout)
-        return layouts.first { $0 != .common } ?? .common
+        if receiver.statusLayout != .common { return receiver.statusLayout }
+        return transmitters.keys.sorted()
+            .compactMap { transmitters[$0]?.statusLayout }
+            .first { $0 != .common } ?? .common
     }
 
     /// The profile that owns a setting: receiver settings use the receiver
@@ -143,12 +153,7 @@ public enum DeviceProfileResolver {
     }
 
     public static func family(for identity: DeviceIdentity?) -> DeviceFamily {
-        guard let name = identity?.productName, !name.isEmpty else {
-            return .unknown
-        }
-        if name.contains("DJI Mic Mini 2") { return .micMini2 }
-        if name.contains("DJI Mic 2") { return .mic2 }
-        return .unknown
+        DeviceFamily(productName: identity?.productName)
     }
 
     private static func receiverProfile(_ identity: DeviceIdentity?) -> DeviceProfile {
@@ -173,7 +178,6 @@ public enum DeviceProfileResolver {
 extension DeviceProfile {
     public static let unknown = DeviceProfile(
         family: .unknown,
-        capabilities: .none,
         commands: [:],
         statusLayout: .common
     )
@@ -182,17 +186,13 @@ extension DeviceProfile {
     /// firmware rejects writes.
     public static let micMini2Receiver = DeviceProfile(
         family: .micMini2,
-        capabilities: .init(settings: [
-            .gain, .monitoringGain, .safetyTrack, .stereo,
-            .clippingControl, .autoOffRX,
-        ]),
         commands: [
-            .gain: .init(command: 0x0039, target: .receiver),
-            .monitoringGain: .init(command: 0x0026, target: .receiver),
-            .safetyTrack: .init(command: 0x0021, target: .receiver),
-            .stereo: .init(command: 0x0008, target: .receiver),
-            .clippingControl: .init(command: 0x001E, target: .receiver),
-            .autoOffRX: .init(command: 0x0010, target: .receiver),
+            .gain: .init(command: SettingCommandID.gain.rawValue, target: .receiver),
+            .monitoringGain: .init(command: SettingCommandID.monitoringGain.rawValue, target: .receiver),
+            .safetyTrack: .init(command: SettingCommandID.safetyTrack.rawValue, target: .receiver),
+            .stereo: .init(command: SettingCommandID.stereo.rawValue, target: .receiver),
+            .clippingControl: .init(command: SettingCommandID.clippingControl.rawValue, target: .receiver),
+            .autoOffRX: .init(command: SettingCommandID.autoOff.rawValue, target: .receiver),
         ],
         statusLayout: .common
     )
@@ -201,17 +201,13 @@ extension DeviceProfile {
     /// so it is intentionally absent.
     public static let mic2Receiver = DeviceProfile(
         family: .mic2,
-        capabilities: .init(settings: [
-            .gain, .monitoringGain, .safetyTrack, .stereo,
-            .clippingControl, .autoOffRX,
-        ]),
         commands: [
-            .gain: .init(command: 0x0039, target: .receiver),
-            .monitoringGain: .init(command: 0x0026, target: .receiver),
-            .safetyTrack: .init(command: 0x0021, target: .receiver),
-            .stereo: .init(command: 0x0008, target: .receiver),
-            .clippingControl: .init(command: 0x001E, target: .receiver),
-            .autoOffRX: .init(command: 0x0010, target: .receiver),
+            .gain: .init(command: SettingCommandID.gain.rawValue, target: .receiver),
+            .monitoringGain: .init(command: SettingCommandID.monitoringGain.rawValue, target: .receiver),
+            .safetyTrack: .init(command: SettingCommandID.safetyTrack.rawValue, target: .receiver),
+            .stereo: .init(command: SettingCommandID.stereo.rawValue, target: .receiver),
+            .clippingControl: .init(command: SettingCommandID.clippingControl.rawValue, target: .receiver),
+            .autoOffRX: .init(command: SettingCommandID.autoOff.rawValue, target: .receiver),
         ],
         statusLayout: .mic2
     )
@@ -219,14 +215,11 @@ extension DeviceProfile {
     /// Mini 2 transmitter: no internal recording, no mute.
     public static let micMini2Transmitter = DeviceProfile(
         family: .micMini2,
-        capabilities: .init(settings: [
-            .lowCut, .micLED, .voiceTone, .autoOffTX,
-        ]),
         commands: [
-            .lowCut: .init(command: 0x0003, target: .broadcast),
-            .micLED: .init(command: 0x000A, target: .unit),
-            .voiceTone: .init(command: 0x0029, target: .unit),
-            .autoOffTX: .init(command: 0x0010, target: .broadcast),
+            .lowCut: .init(command: SettingCommandID.lowCut.rawValue, target: .broadcast),
+            .micLED: .init(command: SettingCommandID.micLED.rawValue, target: .unit),
+            .voiceTone: .init(command: SettingCommandID.voiceTone.rawValue, target: .unit),
+            .autoOffTX: .init(command: SettingCommandID.autoOff.rawValue, target: .broadcast),
         ],
         statusLayout: .common
     )
@@ -234,21 +227,16 @@ extension DeviceProfile {
     /// Mic 2 transmitter: validated recording and button settings.
     public static let mic2Transmitter = DeviceProfile(
         family: .mic2,
-        capabilities: .init(settings: [
-            .lowCut, .micLED, .autoOffTX,
-            .mute, .recording, .vibration, .float32Recording,
-            .recStopLock, .startupAutoRecording,
-        ]),
         commands: [
-            .lowCut: .init(command: 0x0003, target: .broadcast),
-            .micLED: .init(command: 0x000A, target: .unit),
-            .autoOffTX: .init(command: 0x0010, target: .broadcast),
-            .mute: .init(command: 0x0009, target: .unit),
-            .recording: .init(command: 0x0002, target: .unit),
-            .vibration: .init(command: 0x0004, target: .broadcast),
-            .float32Recording: .init(command: 0x000C, target: .broadcast),
-            .recStopLock: .init(command: 0x000B, target: .broadcast),
-            .startupAutoRecording: .init(command: 0x002E, target: .broadcast),
+            .lowCut: .init(command: SettingCommandID.lowCut.rawValue, target: .broadcast),
+            .micLED: .init(command: SettingCommandID.micLED.rawValue, target: .unit),
+            .autoOffTX: .init(command: SettingCommandID.autoOff.rawValue, target: .broadcast),
+            .mute: .init(command: SettingCommandID.mute.rawValue, target: .unit),
+            .recording: .init(command: SettingCommandID.recording.rawValue, target: .unit),
+            .vibration: .init(command: SettingCommandID.vibration.rawValue, target: .broadcast),
+            .float32Recording: .init(command: SettingCommandID.float32Recording.rawValue, target: .broadcast),
+            .recStopLock: .init(command: SettingCommandID.recStopLock.rawValue, target: .broadcast),
+            .startupAutoRecording: .init(command: SettingCommandID.startupAutoRecording.rawValue, target: .broadcast),
         ],
         statusLayout: .mic2
     )

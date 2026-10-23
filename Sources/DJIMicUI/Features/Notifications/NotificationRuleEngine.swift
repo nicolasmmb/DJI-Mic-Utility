@@ -87,68 +87,78 @@ public final class NotificationRuleEngine {
         preferences: NotificationPreferences,
         now: Date = Date()
     ) -> [MicAlert] {
-        var alerts: [MicAlert] = []
-        let connected = snapshot.connection.isConnected
-        let receiverName = snapshot.receiverDisplayName
-
-        if !primed {
-            primed = true
-            if connected {
-                rxWasConnected = true
-                rxConnectedSince = now
-                rxConnectedAnnounced = !preferences.notifyOnLaunchWhenConnected
-                for unit in snapshot.transmitters.keys {
-                    var state = units[unit, default: UnitState()]
-                    state.wasPresent = true
-                    state.presentSince = now
-                    state.connectedAnnounced = !preferences.notifyOnLaunchWhenConnected
-                    state.wasRecording = snapshot.transmitters[unit]?.isRecording ?? false
-                    units[unit] = state
-                }
-            }
+        if primeIfNeeded(snapshot: snapshot, preferences: preferences, now: now) {
             return []
         }
+        return snapshot.connection.isConnected
+            ? evaluateConnected(snapshot: snapshot, preferences: preferences, now: now)
+            : evaluateDisconnected(snapshot: snapshot, preferences: preferences, now: now)
+    }
 
-        if connected {
-            rxDisconnectedSince = nil
-            linkLostAnnounced = false
+    private func primeIfNeeded(
+        snapshot: DeviceSnapshot,
+        preferences: NotificationPreferences,
+        now: Date
+    ) -> Bool {
+        guard !primed else { return false }
+        primed = true
+        guard snapshot.connection.isConnected else { return true }
 
-            if !rxWasConnected {
-                rxWasConnected = true
-                rxConnectedSince = now
-                rxConnectedAnnounced = false
-                rxConnectedAnnouncedAt = nil
-                for unit in units.keys {
-                    units[unit]?.wasPresent = false
-                    units[unit]?.presentSince = nil
-                    units[unit]?.connectedAnnounced = false
-                    units[unit]?.absentSince = nil
-                    units[unit]?.wasRecording = false
-                    units[unit]?.userStopAt = nil
-                    units[unit]?.recordingStopPendingSince = nil
-                    units[unit]?.recordingStopWasUserInitiated = false
-                }
-            }
+        rxWasConnected = true
+        rxConnectedSince = now
+        rxConnectedAnnounced = !preferences.notifyOnLaunchWhenConnected
+        for unit in snapshot.transmitters.keys {
+            var state = units[unit, default: UnitState()]
+            state.wasPresent = true
+            state.presentSince = now
+            state.connectedAnnounced = !preferences.notifyOnLaunchWhenConnected
+            state.wasRecording = snapshot.transmitters[unit]?.isRecording ?? false
+            units[unit] = state
+        }
+        return true
+    }
 
-            if let since = rxConnectedSince,
-               !rxConnectedAnnounced,
-               now.timeIntervalSince(since) >= timing.receiverConnectDelay {
-                if preferences.receiverConnected {
-                    alerts.append(.receiverConnected(name: receiverName))
-                }
-                rxConnectedAnnounced = true
-                rxConnectedAnnouncedAt = now
-            }
+    private func evaluateConnected(
+        snapshot: DeviceSnapshot,
+        preferences: NotificationPreferences,
+        now: Date
+    ) -> [MicAlert] {
+        var alerts: [MicAlert] = []
+        rxDisconnectedSince = nil
+        linkLostAnnounced = false
 
-            alerts.append(contentsOf: evaluateTransmitters(
-                snapshot: snapshot,
-                preferences: preferences,
-                now: now
-            ))
-            return preferences.enabled ? alerts : []
+        if !rxWasConnected {
+            rxWasConnected = true
+            rxConnectedSince = now
+            rxConnectedAnnounced = false
+            rxConnectedAnnouncedAt = nil
+            for unit in units.keys { resetConnectionState(for: unit) }
         }
 
-        // Receiver/USB is down: only the link-lost alert is meaningful.
+        if let since = rxConnectedSince,
+           !rxConnectedAnnounced,
+           now.timeIntervalSince(since) >= timing.receiverConnectDelay {
+            if preferences.receiverConnected {
+                alerts.append(.receiverConnected(name: snapshot.receiverDisplayName))
+            }
+            rxConnectedAnnounced = true
+            rxConnectedAnnouncedAt = now
+        }
+
+        alerts.append(contentsOf: evaluateTransmitters(
+            snapshot: snapshot,
+            preferences: preferences,
+            now: now
+        ))
+        return preferences.enabled ? alerts : []
+    }
+
+    private func evaluateDisconnected(
+        snapshot: DeviceSnapshot,
+        preferences: NotificationPreferences,
+        now: Date
+    ) -> [MicAlert] {
+        var alerts: [MicAlert] = []
         if rxWasConnected {
             rxWasConnected = false
             rxDisconnectedSince = now
@@ -165,24 +175,26 @@ public final class NotificationRuleEngine {
             } ?? true
 
             if preferences.linkLost && canNotify {
-                alerts.append(.linkLost(receiverName: receiverName))
+                alerts.append(.linkLost(receiverName: snapshot.receiverDisplayName))
                 lastLinkLostAt = now
             }
             linkLostAnnounced = true
         }
 
-        for unit in units.keys {
-            units[unit]?.wasPresent = false
-            units[unit]?.presentSince = nil
-            units[unit]?.connectedAnnounced = false
-            units[unit]?.absentSince = nil
-            units[unit]?.wasRecording = false
-            units[unit]?.userStopAt = nil
-            units[unit]?.recordingStopPendingSince = nil
-            units[unit]?.recordingStopWasUserInitiated = false
-        }
+        for unit in units.keys { resetConnectionState(for: unit) }
 
         return preferences.enabled ? alerts : []
+    }
+
+    private func resetConnectionState(for unit: Int) {
+        units[unit]?.wasPresent = false
+        units[unit]?.presentSince = nil
+        units[unit]?.connectedAnnounced = false
+        units[unit]?.absentSince = nil
+        units[unit]?.wasRecording = false
+        units[unit]?.userStopAt = nil
+        units[unit]?.recordingStopPendingSince = nil
+        units[unit]?.recordingStopWasUserInitiated = false
     }
 
     private func evaluateTransmitters(

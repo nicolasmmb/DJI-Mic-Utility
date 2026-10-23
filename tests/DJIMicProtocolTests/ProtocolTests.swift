@@ -180,8 +180,36 @@ private func syntheticAck(sequence: UInt16, value: UInt8) -> [UInt8] {
 
     #expect(DeviceProfileResolver.family(for: identity("DJI Mic Mini 2")) == .micMini2)
     #expect(DeviceProfileResolver.family(for: identity("DJI Mic 2")) == .mic2)
+    #expect(DeviceProfileResolver.family(for: identity("DJI Mic Mini 2 Pro")) == .unknown)
+    #expect(DeviceProfileResolver.family(for: identity("Not DJI Mic 2")) == .unknown)
     #expect(DeviceProfileResolver.family(for: identity("DJI Mic")) == .unknown)
     #expect(DeviceProfileResolver.family(for: nil) == .unknown)
+}
+
+@Test func hybridProfileUsesDeterministicRichestTransmitterLayout() {
+    func identity(_ productName: String) -> DeviceIdentity {
+        DeviceIdentity(productName: productName, serial: "", firmware: "", addressSuffix: "")
+    }
+
+    let profiles = DeviceProfileResolver.resolve(
+        receiver: identity("DJI Mic Mini 2"),
+        transmitters: [
+            1: identity("DJI Mic Mini 2"),
+            2: identity("DJI Mic 2"),
+        ]
+    )
+
+    #expect(profiles.statusLayout == .mic2)
+    #expect(profiles.transmitters[1]?.capabilities.supports(.voiceTone) == true)
+    #expect(profiles.transmitters[1]?.capabilities.supports(.mute) == false)
+    #expect(profiles.transmitters[2]?.capabilities.supports(.mute) == true)
+}
+
+@Test func settingCommandIdentifiersAreTypedAndStable() {
+    #expect(SettingCommandID.recording.rawValue == 0x0002)
+    #expect(SettingCommandID.mute.rawValue == 0x0009)
+    #expect(SettingCommandID.startupAutoRecording.rawValue == 0x002E)
+    #expect(SettingCommandID.gain.rawValue == 0x0039)
 }
 
 @Test func mic2CommandsUseValidatedTargets() throws {

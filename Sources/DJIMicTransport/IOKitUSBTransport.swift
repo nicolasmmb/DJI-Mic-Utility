@@ -10,11 +10,7 @@ public final class IOKitUSBTransport: USBTransporting {
     public let descriptor: USBDeviceDescriptor
     private var handle: OpaquePointer?
 
-    public init(descriptor: USBDeviceDescriptor = USBDeviceDescriptor(
-        vendorID: 0x2CA3,
-        productID: 0x4011,
-        interfaceNumber: 6
-    )) {
+    public init(descriptor: USBDeviceDescriptor = .djiMicReceiver) {
         self.descriptor = descriptor
     }
 

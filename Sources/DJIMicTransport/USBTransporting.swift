@@ -27,4 +27,10 @@ public struct USBDeviceDescriptor: Equatable, Sendable {
         self.productID = productID
         self.interfaceNumber = interfaceNumber
     }
+
+    public static let djiMicReceiver = USBDeviceDescriptor(
+        vendorID: 0x2CA3,
+        productID: 0x4011,
+        interfaceNumber: 6
+    )
 }
