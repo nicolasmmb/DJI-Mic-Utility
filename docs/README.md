@@ -18,7 +18,9 @@ leia nesta ordem antes de alterar qualquer coisa:
 7. [`swift-app.md`](swift-app.md) — arquitetura e build do app macOS.
 8. [`feature-plan.md`](feature-plan.md) — plano consolidado: viabilidade,
    implementação, dados e aprendizado de máquina, validações e roteiro.
-9. [`feature-ideas.md`](feature-ideas.md) — backlog original (histórico).
+9. [`gain-playbook.md`](gain-playbook.md) — ideias por retorno, com o porquê,
+   como implementar, como usar e 100 passos.
+10. [`feature-ideas.md`](feature-ideas.md) — backlog original (histórico).
 
 ## Resumo em uma frase
 
